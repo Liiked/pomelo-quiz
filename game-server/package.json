@@ -1,0 +1,13 @@
+{
+  "name": "chatofpomelo-websocket",
+  "version": "0.0.1",
+  "private": false,
+  "dependencies": {
+    "crc": "0.2.0",
+    "pomelo": "2.2.x"
+  },
+  "devDependencies": {
+    "ioredis": "^3.2.2",
+    "moment": "^2.20.1"
+  }
+}
