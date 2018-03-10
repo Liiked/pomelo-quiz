@@ -52,6 +52,8 @@ var app = new Vue({
                 this.gender = data.sex
 
                 console.log(d.data);
+            }).catch(e => {
+                alert('出错')
             })
         }
 
