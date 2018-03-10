@@ -35,6 +35,7 @@ var app = new Vue({
     },
     beforeMount() {
         let param = GetRequest();
+        alert('param.code is',param.code)
 
         if (!param.code) {
             let url = encodeURIComponent('http://'+location.host + '/')
