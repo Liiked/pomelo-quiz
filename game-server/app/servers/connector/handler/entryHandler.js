@@ -18,8 +18,14 @@ var handler = Handler.prototype;
  */
 handler.enter = function (msg, session, next) {
 	var rid = msg.rid;
-	var uid = msg.username + '*' + rid
+	var uid = msg.openid + '*' + rid
 	var sessionService = this.app.get('sessionService');
+	var userInfo = {
+		username: msg.username,
+		openid: msg.openid,
+		avatar: msg.avatar,
+		sex: msg.sex,
+	}
 
 	//duplicate log in
 	if (!!sessionService.getByUid(uid)) {
@@ -46,7 +52,7 @@ handler.enter = function (msg, session, next) {
 	});
 
 	//用户加入频道
-	this.app.rpc.game.gameRemote.add(session, uid, this.app.get('serverId'), rid, true, function (users) {
+	this.app.rpc.game.gameRemote.add(session, uid, userInfo, this.app.get('serverId'), rid, true, function (users) {
 		next(null, {
 			users
 		});

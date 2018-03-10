@@ -14,6 +14,7 @@ let Game = function () {
     this.countdownCallback = null;
     this.turnCountdownCallback = null;
     this.questionCallback = null;
+    this.playerAmountCallback = null;
 
     // 轮次相关
     let _question = {} // 每轮问题
@@ -25,8 +26,9 @@ let Game = function () {
     this.redis = null; // redis
     let _gameState = 'stop'; // 游戏是否开始
     this.gameIntervalID = null; //游戏配置轮询
-    this.remainPlayer = 0; // 剩余人数
+    _remainPlayer = 0; // 剩余人数
     this.playerAmount = 0; // 游戏人数
+    this.winers = [] // 胜利者
 
     // 从redis中读取配置
 
@@ -57,6 +59,18 @@ let Game = function () {
         },
         get() {
             return _gameCountdown;
+        }
+    })
+    
+    Object.defineProperty(this, 'remainPlayer', {
+        set(v) {
+            _remainPlayer = v;
+            if (this.playerAmountCallback) {
+                this.playerAmountCallback(_remainPlayer);
+            }
+        },
+        get() {
+            return _remainPlayer;
         }
     })
 
@@ -137,6 +151,7 @@ Game.prototype.turnLoop = function (config, interval) {
     this.timeOut(interval, quizLength, (i) => {
         if (index >= quizLength) {
             console.log('game restart');
+            // 游戏结束
             this.gameState = GAME_STATE[0]
             this.gameLoop()
             return
@@ -174,7 +189,7 @@ Game.prototype.gameLoop = function () {
             if (toNow > 0 && toNow <= gameStartCountdown) {
                 console.log('game start');
                 this.config = config;
-                this.redis = new gameRedis('game_' + config.id)
+                this.redis = new gameRedis('game:' + config.id)
                 this.gameState = GAME_STATE[1]
 
                 // 游戏开始倒计时

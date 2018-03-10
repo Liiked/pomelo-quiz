@@ -25,7 +25,7 @@ handler.send = function(msg, session, next) {
 	console.log('come into send');
 	var channelService = this.app.get('channelService');
 	var rid = session.get('rid');
-	var username = session.uid.split('*')[0];
+	var openid = session.uid.split('*')[0];
 	let config = gameMaster.config;
 	// 配置和答案
 	if (!config || Object.keys(config).length < 1) {
@@ -47,7 +47,7 @@ handler.send = function(msg, session, next) {
 	let len = config.quiz.length
 
 	// 数据库处理
-	gameMaster.redis.get(`u_${username}`).then(d => {
+	gameMaster.redis.get(`u_${openid}`).then(d => {
 		let data = JSON.parse(d);
 		
 		if (res.playerAnswer == rightAnswer) {
@@ -58,10 +58,12 @@ handler.send = function(msg, session, next) {
 				data.win = true
 				data.win_timestamp = res.timestamp
 			}
+		} else {
+			-- gameMaster.remainPlayer
 		}
 
 		data.answers.push(res);
-		gameMaster.redis.set(`u_${username}`, JSON.stringify(data))
+		gameMaster.redis.set(`u_${openid}`, JSON.stringify(data))
 
 		next(null, {
 			route: msg.route,

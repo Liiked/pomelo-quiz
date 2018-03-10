@@ -20,9 +20,9 @@ var gameRemote = function (app) {
  * @param {boolean} flag channel parameter
  *
  */
-gameRemote.prototype.add = function (uid, sid, name, flag, cb) {
+gameRemote.prototype.add = function (uid, player, sid, name, flag, cb) {
 	let channel = this.channelService.getChannel(name, flag);
-	var username = uid.split('*')[0];
+	var openid = uid.split('*')[0];
 
 	if (!!channel) {
 		channel.add(uid, sid);
@@ -34,8 +34,10 @@ gameRemote.prototype.add = function (uid, sid, name, flag, cb) {
 
 	// 初始化用户
 	let user = {
-		name: username,
-		game_id: gameMaster.config.game_id, // 当前游戏id
+		name: player.username,
+		openid: player.openid,
+		sex: player.sex,
+		avatar: player.avatar,
 		enter_timestamp: moment().unix(),
 		exit_timestamp: '',
 		exit_in_middle: false, // 中途退出
@@ -44,13 +46,13 @@ gameRemote.prototype.add = function (uid, sid, name, flag, cb) {
 		answers: []
 	}
 
-	gameMaster.redis.set(`u_${username}`, JSON.stringify(user));
+	gameMaster.redis.set(`u_${openid}`, JSON.stringify(user));
 
 
-	// 用户数变化 
+	// 初始推送 
 	channel.pushMessage({
 		route: 'playerAmountChange',
-		user: username,
+		user: openid,
 		remain: gameMaster.remainPlayer,
 		total: gameMaster.playerAmount
 	});
@@ -66,6 +68,16 @@ gameRemote.prototype.add = function (uid, sid, name, flag, cb) {
 			route: 'gameState',
 			state: s
 		})
+	}
+
+	// 玩家数变化
+	gameMaster.playerAmountCallback = (s) => {
+		channel.pushMessage({
+			route: 'playerAmountChange',
+			user: openid,
+			remain: s,
+			total: gameMaster.playerAmount
+		});
 	}
 
 	// 游戏倒计时
@@ -133,14 +145,14 @@ gameRemote.prototype.kick = function (uid, sid, name, cb) {
 	if (!!channel) {
 		channel.leave(uid, sid);
 	}
-	var username = uid.split('*')[0];
+	var openid = uid.split('*')[0];
 	
 
-	gameMaster.redis.get(`u_${username}`).then(d => {
+	gameMaster.redis.get(`u_${openid}`).then(d => {
 		let data = JSON.parse(d)
 		data.exit_timestamp = moment().unix();
 		data.exit_in_middle = true;
-		gameMaster.redis.set(`u_${username}`, JSON.stringify(data));
+		gameMaster.redis.set(`u_${openid}`, JSON.stringify(data));
 	})
 
 	// let total = channel.getUserAmount()
@@ -149,7 +161,7 @@ gameRemote.prototype.kick = function (uid, sid, name, cb) {
 	// 用户数变化 
 	let param = {
 		route: 'playerAmountChange',
-		user: username,
+		user: openid,
 		remain: --gameMaster.remainPlayer,
 		total: gameMaster.playerAmount
 	};

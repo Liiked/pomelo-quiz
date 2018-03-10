@@ -12,6 +12,9 @@ var app = new Vue({
         userName: '',
         lose: false,
         win: false,
+        openid: '',
+        gender: '',
+        headimgurl: '',
 
         // 倒计时
         countdown: 0,
@@ -31,6 +34,27 @@ var app = new Vue({
         picked: ''
     },
     beforeMount() {
+        let param = GetRequest();
+
+        if (!param.code) {
+            let url = encodeURIComponent('http://server1.prowertech.com/')
+            location.href = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=' +
+                'wxc0aa02ca51509241' +
+                '&redirect_uri=' +
+                url +
+                '&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect'
+        } else {
+            axios.get('/getUerInfo/' + param.code).then(d => {
+                let data = d.data;
+                this.userName = data.nickname
+                this.headimgurl = data.headimgurl
+                this.openid = data.openid
+                this.gender = data.sex
+
+                console.log(d.data);
+            })
+        }
+
         // 用户断开连接
         pomelo.on('disconnect', reason => {
             this.logined = false
@@ -88,7 +112,7 @@ var app = new Vue({
                 log: true
             }, () => {
                 pomelo.request('gate.gateHandler.queryEntry', {
-                    uid: this.userName
+                    uid: this.openid
                 }, (data) => {
                     // 关闭入口
                     pomelo.disconnect();
@@ -112,6 +136,9 @@ var app = new Vue({
             }, () => {
                 pomelo.request("connector.entryHandler.enter", {
                     username: this.userName,
+                    openid: this.openid,
+                    avatar: this.headimgurl,
+                    sex: this.gender,
                     rid: 'quiz'
                 }, data => {
                     if (data.error) {
@@ -175,31 +202,16 @@ var app = new Vue({
     }
 })
 
-// function GetRequest() {
+function GetRequest() {
 
-//     var url = location.search; //获取url中"?"符后的字串
-//     var theRequest = new Object();
-//     if (url.indexOf("?") != -1) {
-//         var str = url.substr(1);
-//         strs = str.split("&");
-//         for (var i = 0; i < strs.length; i++) {
-//             theRequest[strs[i].split("=")[0]] = (strs[i].split("=")[1]);
-//         }
-//     }
-//     return theRequest;
-// }
-
-// let param = GetRequest();
-
-// if (!param.code) {
-//     let url = encodeURIComponent('http://server1.prowertech.com/')
-//     location.href = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=' +
-//         'wxc0aa02ca51509241' +
-//         '&redirect_uri=' +
-//         url +
-//         '&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect'
-// } else {
-//     axios.get('/getUerInfo/' + param.code).then(d => {
-//         console.log(d.data);
-//     })
-// }
+    var url = location.search; //获取url中"?"符后的字串
+    var theRequest = new Object();
+    if (url.indexOf("?") != -1) {
+        var str = url.substr(1);
+        strs = str.split("&");
+        for (var i = 0; i < strs.length; i++) {
+            theRequest[strs[i].split("=")[0]] = (strs[i].split("=")[1]);
+        }
+    }
+    return theRequest;
+}
