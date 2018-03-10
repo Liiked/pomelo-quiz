@@ -1,11 +1,12 @@
-
 const redis = require('./../../database/index');
 const moment = require('moment');
+const axios = require('axios')
 
 const GAME_STATE = {
     0: 'stop',
     1: 'start',
-    2: 'playing'
+    2: 'playing',
+    3: 'end'
 }
 
 let Game = function () {
@@ -61,7 +62,7 @@ let Game = function () {
             return _gameCountdown;
         }
     })
-    
+
     Object.defineProperty(this, 'remainPlayer', {
         set(v) {
             _remainPlayer = v;
@@ -150,10 +151,31 @@ Game.prototype.turnLoop = function (config, interval) {
 
     this.timeOut(interval, quizLength, (i) => {
         if (index >= quizLength) {
-            console.log('game restart');
+            console.log('game end-------------');
             // 游戏结束
-            this.gameState = GAME_STATE[0]
+            this.gameState = GAME_STATE[3]
+            let winners = this.winers.length;
+            gameEnd(this.config.id, this.playerAmount, winners).then(d => {
+                // axios.post('http://quizadmin.prowertech.co/quiz/push', {
+                //     game_id: this.config.id
+                // }).then(d => {
+
+                // }).catch(e => {
+                //     console.error(e);
+                // })
+            })
+
+            // 初始化
+            this.config = {}
+            this.playerAmount = 0; // 游戏人数
+            this.winers = []
+            this.gameCountdown = 0
+            this.remainPlayer = 0
+            this.turnCountdown = 0
+            this.redis = {}
+            this.gameQuestions = {}
             this.gameLoop()
+            this.gameState = GAME_STATE[0];
             return
         }
         this.gameState = GAME_STATE[2]
@@ -209,20 +231,32 @@ Game.prototype.gameLoop = function () {
 // hm redis封装
 function gameRedis(key) {
     let k = key;
-    this.set = (field, val,cb) => {
+    this.set = (field, val, cb) => {
         try {
-            return redis.hmset(k, field ,val)
+            return redis.hmset(k, field, val)
         } catch (error) {
             console.error(error);
         }
     }
     this.get = (field, cb) => {
         try {
-           return redis.hmget(k, field)
+            return redis.hmget(k, field)
         } catch (error) {
             console.error(error);
         }
     }
+}
+
+// 计算胜利
+function gameEnd(id, total, win) {
+    // redis.hvals()
+    let data = {
+        id,
+        "endTimestamp": moment().unix(),
+        "winner_amount": win,
+        "player_amount": total
+    }
+    return redis.set('gameResult:' + id, JSON.stringify(data))
 }
 
 // 配置校验

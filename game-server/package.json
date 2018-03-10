@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "private": false,
   "dependencies": {
+    "axios": "^0.18.0",
     "crc": "0.2.0",
     "pomelo": "2.2.x"
   },

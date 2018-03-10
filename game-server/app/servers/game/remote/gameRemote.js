@@ -21,13 +21,13 @@ var gameRemote = function (app) {
  *
  */
 gameRemote.prototype.add = function (uid, player, sid, name, flag, cb) {
+
 	let channel = this.channelService.getChannel(name, flag);
 	var openid = uid.split('*')[0];
 
 	if (!!channel) {
 		channel.add(uid, sid);
 	}
-
 	// 参与人数
 	gameMaster.playerAmount ++;
 	gameMaster.remainPlayer ++;
@@ -45,7 +45,8 @@ gameRemote.prototype.add = function (uid, player, sid, name, flag, cb) {
 		win_timestamp: '', // 胜利时间戳
 		answers: []
 	}
-
+	console.log('redis------------');
+	console.log(gameMaster.redis);
 	gameMaster.redis.set(`u_${openid}`, JSON.stringify(user));
 
 

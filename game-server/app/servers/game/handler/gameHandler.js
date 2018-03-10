@@ -57,6 +57,7 @@ handler.send = function(msg, session, next) {
 			if (msg.order_id == len) {
 				data.win = true
 				data.win_timestamp = res.timestamp
+				gameMaster.winers.push(data);
 			}
 		} else {
 			-- gameMaster.remainPlayer

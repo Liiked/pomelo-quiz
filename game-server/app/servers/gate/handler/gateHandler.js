@@ -36,6 +36,14 @@ handler.queryEntry = function(msg, session, next) {
 		});
 		return;
 	}
+	
+	if (gameMaster.gameState == 'stop') {
+		next(null, {
+			code: 500,
+			msg: '游戏还未开始，请等待'
+		});
+		return;
+	}
 
 
 	// get all connectors

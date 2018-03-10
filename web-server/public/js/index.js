@@ -37,7 +37,7 @@ var app = new Vue({
         let param = GetRequest();
 
         if (!param.code) {
-            let url = encodeURIComponent('http://server1.prowertech.com/')
+            let url = encodeURIComponent('http://'+location.host + '/')
             location.href = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=' +
                 'wxc0aa02ca51509241' +
                 '&redirect_uri=' +
@@ -72,7 +72,7 @@ var app = new Vue({
         // 游戏进行状态
         pomelo.on('gameState', d => {
             this.start = d.state || 'stop';
-            if (this.start == 'stop') {
+            if (this.start == 'stop' || this.start == 'end') {
                 this.question = ''
             }
         });
@@ -115,6 +115,7 @@ var app = new Vue({
                     uid: this.openid
                 }, (data) => {
                     // 关闭入口
+                    console.log(data);
                     pomelo.disconnect();
                     if (data.code == 500) {
                         console.log('login failed');
@@ -141,7 +142,9 @@ var app = new Vue({
                     sex: this.gender,
                     rid: 'quiz'
                 }, data => {
-                    if (data.error) {
+                    console.log(data);
+                    if (data.err) {
+                        alert(data.err)
                         return;
                     }
                     this.logined = true;
