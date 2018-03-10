@@ -1,161 +1,113 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>
-        答题游戏
-    </title>
-    <link rel="stylesheet" href="./css/index.css" type="text/css" />
-    <link href="https://cdn.bootcss.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.slim.min.js"></script>
-    <script src="https://cdn.bootcss.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>答题游戏</title>
+    <link href="https://cdn.bootcss.com/onsen/2.9.2/css/dark-onsen-css-components.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcss.com/onsen/2.9.2/css/onsenui.min.css" rel="stylesheet">
+    <link href="./css/index.css" rel="stylesheet">
+    <link href="https://cdn.bootcss.com/onsen/2.9.2/css/onsen-css-components.min.css" rel="stylesheet">
     <script src="https://cdn.bootcss.com/vue/2.5.13/vue.js"></script>
-    <script src="js/lib/build/build.js" type="text/javascript"></script>
-    <script type="text/javascript">
-        require('boot');
-    </script>
-    <style lang="">
-        .text-end {
-            text-align: end;
-        }
+    <script src="https://cdn.bootcss.com/onsen/2.9.2/js/onsenui.min.js"></script>
 
-        .card {
-            margin-bottom: 20px;
-        }
-    </style>
-    <!-- <script src="js/client.js"></script> -->
 </head>
 
 <body>
-    <div class="aaa">
-        <div id="app">
-            <div class="container">
-                <!-- 警告 -->
-                <div class="alert alert-warning alert-dismissible fade show" role="alert" style="margin-top: 20px;" v-if="errorMsg">
-                    <strong>哎呀！</strong> {{errorMsg}}
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close" @click="errorMsg = ''">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <!-- 测试登录页面 -->
-                <div class="login-page" v-if="!logined">
-                    <div class="row">
-                        <div class="col"></div>
-                        <div class="col">
-                            <form>
-                                <div class="form-group">
-                                    <label for="exampleInputEmail1">用户登录</label>
-                                    <input type="text" class="form-control" placeholder="用户名" v-model="userName">
-                                    <small id="emailHelp" class="form-text text-muted">测试登录用户名，非线上环境</small>
-                                </div>
-                            </form>
-                            <button class="btn btn-primary" @click="dispatchServer()">提交</button>
-                        </div>
-                        <div class="col"></div>
+    <div id="app">
+
+    </div>
+
+    <template id="main">
+        <v-ons-navigator :page-stack="pageStack" @push-page="pageStack.push($event)"></v-ons-navigator>
+    </template>
+
+    <!-- 欢迎页面 -->
+    <template id="welcome">
+        <v-ons-page>
+            <div class="welcome-wrapper">
+                <div class="game-discription">
+                    <h2 class="game-status">游戏尚未开始</h2>
+                    <div class="game-start">
+                        <p style="font-size: 1.2rem;">游戏将于{{}}开始</p>
+                        <p style="font-size: 1.2rem;">距离游戏还有
+                            <span>{{}}</span>
+                        </p>
                     </div>
                 </div>
-                <!-- 游戏页面 -->
-                <div class="game-page" v-else>
-                    <div class="card game-info bg-success" style="color:white;">
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col">
-                                    <div class="current-player">
-                                        欢迎
-                                        <span class="badge badge-light">{{userName}}</span>来到游戏
-                                    </div>
-                                </div>
-                                <div class="col">
-                                    <div class="total-player text-end">
-                                        总玩家：
-                                        <span class="badge badge-light">{{playerAmount}}</span>
-                                        剩余：
-                                        <span class="badge badge-light">{{remain}}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card game-state bg-dark" style="color:white;">
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col">
-                                    <div class="count-down" v-if="start == 'start'">
-                                        游戏开始倒计时：
-                                        <span class="badge badge-danger">{{countdown}}</span>
-                                    </div>
-                                </div>
-                                <div class="col text-end">
-                                    {{gameState}}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card turn-state" v-show="question">
-                        <div class="card turn-state">
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col">
-                                        <div class="count-down text-sm-center text-info">
-                                            回合倒计时：
-                                            <span class="badge badge-danger">{{turnCountdown}}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="card" v-show="question">
-                            <div class="card-header">
-                                <h4>第{{order}}道</h4>
-                                <h4>共{{totalQuiz}}道</h4>
-                                <h4>题目：{{question}}</h4>
-
-                            </div>
-                            <div class="card-body">
-                                <div class="form-check" v-for="i in options">
-                                    <input class="form-check-input" type="radio" :value="i.key" v-model="picked" :disabled="cantEdit">
-                                    <label class="form-check-label" for="exampleRadios1">
-                                        {{i.value}}
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="alert alert-info alert-dismissible fade show" role="alert" v-show="lose">
-                            <strong>太可惜了！</strong> 你已经输了，不过还可以继续看大家答题
-                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-
-                        <div class="alert alert-success alert-dismissible fade show" role="alert" v-show="getRight">
-                            <strong>正确！</strong>请耐心等待其他人完成任务
-                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-
-                        <div class="alert alert-success alert-dismissible fade show" role="alert" v-show="win">
-                            <strong>恭喜！</strong> 您赢得了游戏
-                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-
-                        <button type="button" class="btn btn-primary" @click="answer()">请勿随意点击-答题测试</button>
-
-                    </div>
-
-                </div>
-
+                <v-ons-button @click="push">Push Page 2</v-ons-button>
             </div>
-        </div>
+        </v-ons-page>
+    </template>
+
+    <!-- 结果页面 -->
+    <template id="result">
+        <v-ons-page>
+            <div class="result-wrapper">
+                <div class="result-discription">
+                    <h2 class="result-status">恭喜您冲顶成功！</h2>
+                    <h2 class="result-status">失败乃成功之母，祝您下次成功！</h2>
+                    <div class="result-start">
+                        <p>共有<span>{{}}</span>名玩家参与游戏，<span>{{}}</span>人冲顶成功</p>
+                    </div>
+                </div>
+            </div>
+            <v-ons-button @click="push">Push Page 2</v-ons-button>
+        </v-ons-page>
+    </template>
+
+    <!-- 测试页面 -->
+    <template id="quiz">
+        <v-ons-page>
+            <div class="game-wrapper">
+                <div class="game-header">
+                    <div class="turn-display">题目轮次
+                        <span class="text-lg">{{turnIndex}}</span>/
+                        <span></span>{{turnTotal}}</div>
+                    <div class="amount-display">剩余人数
+                        <span class="text-lg">{{remainders}}</span>/
+                        <span>{{playerAmount}}</span>
+                    </div>
+                </div>
+                <!-- 游戏主体 -->
+                <div class="game-body">
+                    <div class="quiz-head">
+                        <h4>{{quizTitle}}</h4>
+                    </div>
+                    <div class="kickout-msg" v-show="kickoutMsg">
+                        <p>{{ kickoutMsg }}</p>
+                    </div>
+                    <v-ons-list>
+                        <v-ons-list-item :tappable="!gameOver" v-for="(item,index) in questions" :key="index">
+                            <label class="left">
+                                <v-ons-radio :input-id="'radio-' + index" :value="item.key" v-model="picked" @click="pickChange($event)">
+                                </v-ons-radio>
+                            </label>
+                            <label class="center" :for="'radio-' + index">
+                                {{item.value}}
+                            </label>
+                        </v-ons-list-item>
+                        <v-ons-list-item v-show="quizMsg">
+                            <div class="center">
+                                {{ quizMsg }}
+                            </div>
+                        </v-ons-list-item>
+                        <v-ons-list-item>
+                            <div class="center">
+                                本题剩余
+                                <span class="badge" :class="{'badge-danger': turnCountdown < 6}">{{turnCountdown}}</span>秒
+                            </div>
+                        </v-ons-list-item>
+                    </v-ons-list>
+                </div>
+            </div>
+        </v-ons-page>
+    </template>
+
+    <script src="./js/lib/vue-ons.js"></script>
+    <script src="./js/index.js"></script>
 </body>
-<script src="https://cdn.bootcss.com/axios/0.18.0/axios.min.js"></script>
-<script src="./js/index.js"></script>
 
 </html>

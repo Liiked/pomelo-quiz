@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>
+        答题游戏
+    </title>
+    <link rel="stylesheet" href="./css/index.css" type="text/css" />
+    <link href="https://cdn.bootcss.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.slim.min.js"></script>
+    <script src="https://cdn.bootcss.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script src="https://cdn.bootcss.com/vue/2.5.13/vue.js"></script>
+    <script src="js/lib/build/build.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        require('boot');
+    </script>
+    <style lang="">
+        .text-end {
+            text-align: end;
+        }
+
+        .card {
+            margin-bottom: 20px;
+        }
+    </style>
+    <!-- <script src="js/client.js"></script> -->
+</head>
+
+<body>
+    <div class="aaa">
+        <div id="app">
+            <div class="container">
+                <!-- 警告 -->
+                <div class="alert alert-warning alert-dismissible fade show" role="alert" style="margin-top: 20px;" v-if="errorMsg">
+                    <strong>哎呀！</strong> {{errorMsg}}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close" @click="errorMsg = ''">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <!-- 测试登录页面 -->
+                <div class="login-page" v-if="!logined">
+                    <div class="row">
+                        <div class="col"></div>
+                        <div class="col">
+                            <form>
+                                <div class="form-group">
+                                    <label for="exampleInputEmail1">用户登录</label>
+                                    <input type="text" class="form-control" placeholder="用户名" v-model="userName">
+                                    <small id="emailHelp" class="form-text text-muted">测试登录用户名，非线上环境</small>
+                                </div>
+                            </form>
+                            <button class="btn btn-primary" @click="dispatchServer()">提交</button>
+                        </div>
+                        <div class="col"></div>
+                    </div>
+                </div>
+                <!-- 游戏页面 -->
+                <div class="game-page" v-else>
+                    <div class="card game-info bg-success" style="color:white;">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col">
+                                    <div class="current-player">
+                                        欢迎
+                                        <span class="badge badge-light">{{userName}}</span>来到游戏
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="total-player text-end">
+                                        总玩家：
+                                        <span class="badge badge-light">{{playerAmount}}</span>
+                                        剩余：
+                                        <span class="badge badge-light">{{remain}}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card game-state bg-dark" style="color:white;">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col">
+                                    <div class="count-down" v-if="start == 'start'">
+                                        游戏开始倒计时：
+                                        <span class="badge badge-danger">{{countdown}}</span>
+                                    </div>
+                                </div>
+                                <div class="col text-end">
+                                    {{gameState}}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card turn-state" v-show="question">
+                        <div class="card turn-state">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col">
+                                        <div class="count-down text-sm-center text-info">
+                                            回合倒计时：
+                                            <span class="badge badge-danger">{{turnCountdown}}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card" v-show="question">
+                            <div class="card-header">
+                                <h4>第{{order}}道</h4>
+                                <h4>共{{totalQuiz}}道</h4>
+                                <h4>题目：{{question}}</h4>
+
+                            </div>
+                            <div class="card-body">
+                                <div class="form-check" v-for="i in options">
+                                    <input class="form-check-input" type="radio" :value="i.key" v-model="picked" :disabled="cantEdit">
+                                    <label class="form-check-label" for="exampleRadios1">
+                                        {{i.value}}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info alert-dismissible fade show" role="alert" v-show="lose">
+                            <strong>太可惜了！</strong> 你已经输了，不过还可以继续看大家答题
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+
+                        <div class="alert alert-success alert-dismissible fade show" role="alert" v-show="getRight">
+                            <strong>正确！</strong>请耐心等待其他人完成任务
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+
+                        <div class="alert alert-success alert-dismissible fade show" role="alert" v-show="win">
+                            <strong>恭喜！</strong> 您赢得了游戏
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+
+                        <button type="button" class="btn btn-primary" @click="answer()">请勿随意点击-答题测试</button>
+
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+</body>
+<script src="https://cdn.bootcss.com/axios/0.18.0/axios.min.js"></script>
+<script src="./js/index.js"></script>
+
+</html>
