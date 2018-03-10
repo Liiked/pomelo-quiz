@@ -44,7 +44,7 @@ var app = new Vue({
                 url +
                 '&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect'
         } else {
-            axios.get('/getUerInfo/' + param.code).then(d => {
+            axios.get('/api/getUerInfo/' + param.code).then(d => {
                 let data = d.data;
                 this.userName = data.nickname
                 this.headimgurl = data.headimgurl

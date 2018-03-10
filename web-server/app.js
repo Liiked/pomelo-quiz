@@ -21,7 +21,7 @@ app.configure('development', function () {
 		dumpExceptions: true,
 		showStack: true
 	}));
-	app.get('/getUerInfo/:code', function (req, res) {
+	app.get('/api/getUerInfo/:code', function (req, res) {
 		let param = req.params;
 		console.log(req.params);
 		axios.get('https://api.weixin.qq.com/sns/oauth2/access_token?appid=' +
