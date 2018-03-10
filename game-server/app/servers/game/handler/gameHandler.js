@@ -23,18 +23,11 @@ var handler = Handler.prototype;
  */
 handler.send = function(msg, session, next) {
 	console.log('come into send');
+	var channelService = this.app.get('channelService');
 	var rid = session.get('rid');
 	var username = session.uid.split('*')[0];
-	var channelService = this.app.get('channelService');
-	var res = {
-		quiz_id: msg.quiz_id,
-		answer: msg.answer,
-		timestamp: moment().unix(),
-		result: 0
-	};
-
-	let config = gameMaster.config
-
+	let config = gameMaster.config;
+	// 配置和答案
 	if (!config || Object.keys(config).length < 1) {
 		next(null, {
 			route: msg.route,
@@ -42,14 +35,22 @@ handler.send = function(msg, session, next) {
 		});
 		return
 	}
+	let rightAnswer = gameMaster.gameQuestions.answer
+	var res = {
+		quiz_id: msg.quiz_id,
+		playerAnswer: msg.answer,
+		answer: rightAnswer,
+		timestamp: moment().unix(),
+		result: 0 // 1胜利，0错误
+	};
 
 	let len = config.quiz.length
-	let answer = gameMaster.gameQuestions.answer
-	
-	redis.get(`u_${username}`).then(d => {
+
+	// 数据库处理
+	gameMaster.redis.get(`u_${username}`).then(d => {
 		let data = JSON.parse(d);
 		
-		if (msg.answer == answer) {
+		if (res.playerAnswer == rightAnswer) {
 			res.result = 1;
 			console.log('length is -------------------------');
 			console.log(msg.order_id, len);
@@ -60,12 +61,14 @@ handler.send = function(msg, session, next) {
 		}
 
 		data.answers.push(res);
-		redis.set(`u_${username}`, JSON.stringify(data))
-		console.log(res);
+		gameMaster.redis.set(`u_${username}`, JSON.stringify(data))
+
 		next(null, {
 			route: msg.route,
-			answer: Boolean(res.result),
-			win: data.win
+			yourAnswer: res.playerAnswer, // 用户答案 
+			answer: res.answer, // 正确答案
+			win: data.win,
+			result: res.result // 结果
 		});
 
 	})

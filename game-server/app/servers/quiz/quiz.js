@@ -1,3 +1,4 @@
+
 const redis = require('./../../database/index');
 const moment = require('moment');
 
@@ -21,8 +22,11 @@ let Game = function () {
     // 游戏相关
     let _gameCountdown = 0; // 游戏开始倒计时 单位秒
     this.config = {};
+    this.redis = null; // redis
     let _gameState = 'stop'; // 游戏是否开始
     this.gameIntervalID = null; //游戏配置轮询
+    this.remainPlayer = 0; // 剩余人数
+    this.playerAmount = 0; // 游戏人数
 
     // 从redis中读取配置
 
@@ -73,7 +77,7 @@ let Game = function () {
             _question = v;
             console.log('quest change');
             if (this.questionCallback) {
-                this.questionCallback(_question.id, _question.order, _question.title, _question.options);
+                this.questionCallback(_question.id, _question.order, _question.total, _question.title, _question.options);
             }
         },
         get() {
@@ -125,6 +129,10 @@ Game.prototype.turnLoop = function (config, interval) {
     let quizLength = quiz.length;
     let index = 0;
     let turnID = null;
+    quiz.forEach((e, i) => {
+        e['order'] = i + 1;
+        e['total'] = quizLength;
+    });
 
     this.timeOut(interval, quizLength, (i) => {
         if (index >= quizLength) {
@@ -157,6 +165,7 @@ Game.prototype.gameLoop = function () {
                 return;
             }
             console.log('looping');
+            // 游戏配置
             let config = JSON.parse(d);
             let gameStartCountdown = config.to_start ? Number(config.to_start) * 60 : 300;
             let startTime = config.start_time;
@@ -165,6 +174,7 @@ Game.prototype.gameLoop = function () {
             if (toNow > 0 && toNow <= gameStartCountdown) {
                 console.log('game start');
                 this.config = config;
+                this.redis = new gameRedis('game_' + config.id)
                 this.gameState = GAME_STATE[1]
 
                 // 游戏开始倒计时
@@ -179,6 +189,37 @@ Game.prototype.gameLoop = function () {
 
         })
     })
+}
+
+// hm redis封装
+function gameRedis(key) {
+    let k = key;
+    this.set = (field, val,cb) => {
+        try {
+            return redis.hmset(k, field ,val)
+        } catch (error) {
+            console.error(error);
+        }
+    }
+    this.get = (field, cb) => {
+        try {
+           return redis.hmget(k, field)
+        } catch (error) {
+            console.error(error);
+        }
+    }
+}
+
+// 配置校验
+function gameVerify(config) {
+    if (typeof config != 'object') {
+        console.error('游戏配置格式有误');
+        return false
+    }
+    if (!config.id) {
+        console.error('游戏未配置id');
+        return false
+    }
 }
 
 module.exports = new Game();

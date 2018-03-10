@@ -28,6 +28,10 @@ gameRemote.prototype.add = function (uid, sid, name, flag, cb) {
 		channel.add(uid, sid);
 	}
 
+	// 参与人数
+	gameMaster.playerAmount ++;
+	gameMaster.remainPlayer ++;
+
 	// 初始化用户
 	let user = {
 		name: username,
@@ -40,13 +44,15 @@ gameRemote.prototype.add = function (uid, sid, name, flag, cb) {
 		answers: []
 	}
 
-	redis.set(`u_${username}`, JSON.stringify(user));
+	gameMaster.redis.set(`u_${username}`, JSON.stringify(user));
+
 
 	// 用户数变化 
 	channel.pushMessage({
 		route: 'playerAmountChange',
 		user: username,
-		total: channel.getUserAmount()
+		remain: gameMaster.remainPlayer,
+		total: gameMaster.playerAmount
 	});
 
 	channel.pushMessage({
@@ -79,11 +85,12 @@ gameRemote.prototype.add = function (uid, sid, name, flag, cb) {
 	}
 
 	// 题目推送
-	gameMaster.questionCallback = (q_id, o_id, question, options) => {
+	gameMaster.questionCallback = (q_id, order,total, question, options) => {
 		channel.pushMessage({
 			route: 'turnQuiz',
 			q_id,
-			o_id,
+			order,
+			total,
 			question,
 			options
 		})
@@ -129,23 +136,24 @@ gameRemote.prototype.kick = function (uid, sid, name, cb) {
 	var username = uid.split('*')[0];
 	
 
-	redis.get(`u_${username}`).then(d => {
+	gameMaster.redis.get(`u_${username}`).then(d => {
 		let data = JSON.parse(d)
 		data.exit_timestamp = moment().unix();
 		data.exit_in_middle = true;
-		redis.set(`u_${username}`, JSON.stringify(data));
+		gameMaster.redis.set(`u_${username}`, JSON.stringify(data));
 	})
 
-
-	let total = channel.getUserAmount()
+	// let total = channel.getUserAmount()
+	// 参与人数
+	
 	// 用户数变化 
 	let param = {
 		route: 'playerAmountChange',
 		user: username,
-		total
+		remain: --gameMaster.remainPlayer,
+		total: gameMaster.playerAmount
 	};
 	channel.pushMessage(param);
-
 
 	cb();
 };

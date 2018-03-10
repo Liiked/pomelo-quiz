@@ -68,8 +68,10 @@
                                 </div>
                                 <div class="col">
                                     <div class="total-player text-end">
-                                        当前在线玩家：
+                                        总玩家：
                                         <span class="badge badge-light">{{playerAmount}}</span>
+                                        剩余：
+                                        <span class="badge badge-light">{{remain}}</span>
                                     </div>
                                 </div>
                             </div>
@@ -108,7 +110,10 @@
 
                         <div class="card" v-show="question">
                             <div class="card-header">
+                                <h4>第{{order}}道</h4>
+                                <h4>共{{totalQuiz}}道</h4>
                                 <h4>题目：{{question}}</h4>
+
                             </div>
                             <div class="card-body">
                                 <div class="form-check" v-for="i in options">
@@ -126,14 +131,14 @@
                                 <span aria-hidden="true">&times;</span>
                             </button>
                         </div>
-                        
+
                         <div class="alert alert-success alert-dismissible fade show" role="alert" v-show="getRight">
                             <strong>正确！</strong>请耐心等待其他人完成任务
                             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                                 <span aria-hidden="true">&times;</span>
                             </button>
                         </div>
-                        
+
                         <div class="alert alert-success alert-dismissible fade show" role="alert" v-show="win">
                             <strong>恭喜！</strong> 您赢得了游戏
                             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -150,6 +155,7 @@
             </div>
         </div>
 </body>
+<script src="https://cdn.bootcss.com/axios/0.18.0/axios.min.js"></script>
 <script src="./js/index.js"></script>
 
 </html>
