@@ -61,13 +61,15 @@ gameRemote.prototype.add = function (uid, player, sid, name, flag, cb) {
 	channel.pushMessage({
 		route: 'gameState',
 		state: gameMaster.gameState,
+		startAt: gameMaster.config.start_time
 	});
 
 	// 游戏状态变化
 	gameMaster.stateCallback = (s) => {
 		channel.pushMessage({
 			route: 'gameState',
-			state: s
+			state: s,
+			startAt: gameMaster.config.start_time
 		})
 	}
 

@@ -156,13 +156,13 @@ Game.prototype.turnLoop = function (config, interval) {
             this.gameState = GAME_STATE[3]
             let winners = this.winers.length;
             gameEnd(this.config.id, this.playerAmount, winners).then(d => {
-                // axios.post('http://quizadmin.prowertech.co/quiz/push', {
-                //     game_id: this.config.id
-                // }).then(d => {
+                axios.post('http://quizadmin.prowertech.co/quiz/push', {
+                    game_id: this.config.id
+                }).then(d => {
 
-                // }).catch(e => {
-                //     console.error(e);
-                // })
+                }).catch(e => {
+                    console.error(e);
+                })
             })
 
             // 初始化
