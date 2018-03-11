@@ -151,31 +151,24 @@ Game.prototype.turnLoop = function (config, interval) {
 
     this.timeOut(interval, quizLength, (i) => {
         if (index >= quizLength) {
-            console.log('game end-------------');
             // 游戏结束
             this.gameState = GAME_STATE[3]
-            let winners = this.winers.length;
-            gameEnd(this.config.id, this.playerAmount, winners).then(d => {
-                axios.post('http://quizadmin.prowertech.co/quiz/push', {
-                    game_id: this.config.id
-                }).then(d => {
+            // let winners = this.winers.length;
+            // let total = this.playerAmount;
+            // let winLen = this.remainPlayer;
+            // console.log('game end-------------');
+            // console.log('winner is', this.config.id, total, winners);
 
-                }).catch(e => {
-                    console.error(e);
-                })
+            gameEnd(this.config.id)
+
+            axios.post('http://quizadmin.prowertech.co/quiz/push', {
+                game_id: this.config.id
+            }).then(d => {
+                console.log(d);
+            }).catch(e => {
+                console.error(e);
             })
-
-            // 初始化
-            this.config = {}
-            this.playerAmount = 0; // 游戏人数
-            this.winers = []
-            this.gameCountdown = 0
-            this.remainPlayer = 0
-            this.turnCountdown = 0
-            this.redis = {}
-            this.gameQuestions = {}
             this.gameLoop()
-            this.gameState = GAME_STATE[0];
             return
         }
         this.gameState = GAME_STATE[2]
@@ -189,7 +182,16 @@ Game.prototype.turnLoop = function (config, interval) {
 
 // 游戏redis轮询
 Game.prototype.gameLoop = function () {
-
+    // 初始化
+    this.gameState = GAME_STATE[0];
+    this.config = {}
+    this.playerAmount = 0; // 游戏人数
+    this.winers = []
+    this.gameCountdown = 0
+    this.remainPlayer = 0
+    this.turnCountdown = 0
+    this.redis = {}
+    this.gameQuestions = {}
     this.gameIntervalID = this.timeOut(10, -1, (index) => {
         if (this.gameState == 'start') {
             clearInterval(this.gameIntervalID);
@@ -212,6 +214,13 @@ Game.prototype.gameLoop = function () {
                 console.log('game start');
                 this.config = config;
                 this.redis = new gameRedis('game:' + config.id)
+                redis.set(`gameResult:${config.id}`, JSON.stringify({
+                    "id": config.id,
+                    "endTimestamp": '',
+                    "winner_amount": 0,
+                    "player_amount": 0,
+                    'winners':[]
+                }))
                 this.gameState = GAME_STATE[1]
 
                 // 游戏开始倒计时
@@ -248,15 +257,15 @@ function gameRedis(key) {
 }
 
 // 计算胜利
-function gameEnd(id, total, win) {
+function gameEnd(id) {
     // redis.hvals()
-    let data = {
-        id,
-        "endTimestamp": moment().unix(),
-        "winner_amount": win,
-        "player_amount": total
-    }
-    return redis.set('gameResult:' + id, JSON.stringify(data))
+    let result = 'gameResult:' + id
+
+    redis.get(result).then(d => {
+        let data = JSON.parse(d)
+        data['endTimestamp'] = moment().unix()
+        redis.set(result, JSON.stringify(data))
+    })
 }
 
 // 配置校验

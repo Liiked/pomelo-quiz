@@ -28,6 +28,14 @@ gameRemote.prototype.add = function (uid, player, sid, name, flag, cb) {
 	if (!!channel) {
 		channel.add(uid, sid);
 	}
+
+	let resultInRedis = `gameResult:${gameMaster.config.id}`
+	redis.get(resultInRedis).then(d=> {
+		let data = JSON.parse(d);
+		data.player_amount ++;
+		redis.set(resultInRedis,JSON.stringify(data));
+	})
+
 	// 参与人数
 	gameMaster.playerAmount ++;
 	gameMaster.remainPlayer ++;
@@ -45,10 +53,7 @@ gameRemote.prototype.add = function (uid, player, sid, name, flag, cb) {
 		win_timestamp: '', // 胜利时间戳
 		answers: []
 	}
-	console.log('redis------------');
-	console.log(gameMaster.redis);
 	gameMaster.redis.set(`u_${openid}`, JSON.stringify(user));
-
 
 	// 初始推送 
 	channel.pushMessage({
@@ -158,8 +163,8 @@ gameRemote.prototype.kick = function (uid, sid, name, cb) {
 		gameMaster.redis.set(`u_${openid}`, JSON.stringify(data));
 	})
 
-	// let total = channel.getUserAmount()
 	// 参与人数
+	// let total = channel.getUserAmount()
 	
 	// 用户数变化 
 	let param = {

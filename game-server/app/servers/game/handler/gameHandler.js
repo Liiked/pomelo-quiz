@@ -3,11 +3,11 @@ let moment = require('moment');
 let redis = require('./../../../database/index');
 let gameMaster = require('./../../quiz/quiz')
 
-module.exports = function(app) {
+module.exports = function (app) {
 	return new Handler(app);
 };
 
-var Handler = function(app) {
+var Handler = function (app) {
 	this.app = app;
 };
 
@@ -21,7 +21,7 @@ var handler = Handler.prototype;
  * @param  {Function} next next stemp callback
  *
  */
-handler.send = function(msg, session, next) {
+handler.send = function (msg, session, next) {
 	console.log('come into send');
 	var channelService = this.app.get('channelService');
 	var rid = session.get('rid');
@@ -49,18 +49,26 @@ handler.send = function(msg, session, next) {
 	// 数据库处理
 	gameMaster.redis.get(`u_${openid}`).then(d => {
 		let data = JSON.parse(d);
-		
+
 		if (res.playerAnswer == rightAnswer) {
 			res.result = 1;
 			console.log('length is -------------------------');
 			console.log(msg.order_id, len);
+			// 最后回合
 			if (msg.order_id == len) {
 				data.win = true
-				data.win_timestamp = res.timestamp
-				gameMaster.winers.push(data);
+				data.win_timestamp = res.timestamp;
+
+				let resultInRedis = `gameResult:${config.id}`
+				redis.get(resultInRedis).then(d => {
+					let f = JSON.parse(d);
+					f.winners.push(data);
+					f.winner_amount ++;
+					redis.set(resultInRedis, JSON.stringify(f));
+				})
 			}
 		} else {
-			-- gameMaster.remainPlayer
+			--gameMaster.remainPlayer
 		}
 
 		data.answers.push(res);
