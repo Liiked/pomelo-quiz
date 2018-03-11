@@ -159,7 +159,6 @@ var app = new Vue({
             id = this.picked
             this.cantEdit = true
             pomelo.request("game.gameHandler.send", {
-                player: this.userName,
                 rid: 'quiz',
                 quiz_id: this.q_id,
                 order_id: this.o_id,

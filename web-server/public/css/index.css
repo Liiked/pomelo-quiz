@@ -1,4 +1,5 @@
-body, html {
+body,
+html {
   font-size: 16px;
 }
 
@@ -8,6 +9,8 @@ body, html {
   display: flex;
   justify-content: center;
   align-items: center;
+  box-sizing: border-box;
+  padding: 20px;
 }
 
 .welcome-wrapper .game-discription {
@@ -31,7 +34,7 @@ body, html {
 }
 
 .game-wrapper .game-header {
-  padding: 20px;
+  padding: 10px 20px;
   display: flex;
   height: 50px;
   align-items: center;
@@ -64,6 +67,38 @@ body, html {
 
 .game-wrapper .game-body .list-item__center {
   font-size: 1.2rem;
+}
+
+.game-wrapper .game-body .right-answer .list-item__center {
+  color: #4caf50;
+}
+
+.game-wrapper .game-body .right-answer .radio-button__checkmark:after {
+  border-color: #4caf50;
+}
+
+.game-wrapper .game-body .right-answer .radio-button--material__checkmark::before {
+  border-color: #4caf50;
+}
+
+.game-wrapper .game-body .right-answer .radio-button--material__checkmark::after {
+  background-color: #4caf50;
+}
+
+.game-wrapper .game-body .wrong-answer .list-item__center {
+  color: #FF5722;
+}
+
+.game-wrapper .game-body .wrong-answer .radio-button__checkmark::after {
+  border-color: #FF5722;
+}
+
+.game-wrapper .game-body .wrong-answer .radio-button--material__checkmark::before {
+  border-color: #FF5722;
+}
+
+.game-wrapper .game-body .wrong-answer .radio-button--material__checkmark::after {
+  background-color: #FF5722;
 }
 
 .result-wrapper {

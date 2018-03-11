@@ -12,13 +12,14 @@
     <link href="https://cdn.bootcss.com/onsen/2.9.2/css/onsen-css-components.min.css" rel="stylesheet">
     <script src="https://cdn.bootcss.com/vue/2.5.13/vue.js"></script>
     <script src="https://cdn.bootcss.com/onsen/2.9.2/js/onsenui.min.js"></script>
-
+    <script src="./js/lib/build/build.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        require('boot');
+    </script>
 </head>
 
 <body>
-    <div id="app">
-
-    </div>
+    <div id="app"></div>
 
     <template id="main">
         <v-ons-navigator :page-stack="pageStack" @push-page="pageStack.push($event)"></v-ons-navigator>
@@ -29,15 +30,19 @@
         <v-ons-page>
             <div class="welcome-wrapper">
                 <div class="game-discription">
-                    <h2 class="game-status">游戏尚未开始</h2>
+                    <h2 class="game-status">{{gameState}}</h2>
                     <div class="game-start">
-                        <p style="font-size: 1.2rem;">游戏将于{{}}开始</p>
-                        <p style="font-size: 1.2rem;">距离游戏还有
-                            <span>{{}}</span>
-                        </p>
+                        <p style="font-size: 1.2rem;" v-if="loginError">{{loginError}}</p>
+                        <p style="font-size: 1.2rem;" v-if="!logined">您还未进入游戏</p>
+                        <div v-if="logined">
+                            <p style="font-size: 0.9rem;" v-if="start == 'start'">游戏将于{{startAt}}开始</p>
+                            <p style="font-size: 1.2rem;" v-if="start == 'playing'">游戏正在进行中，请耐心等待下一轮</p>
+                            <p style="font-size: 1.2rem;" v-if="start == 'start'">距离游戏开始还有
+                                <span>{{countdown}}</span>秒
+                            </p>
+                        </div>
                     </div>
                 </div>
-                <v-ons-button @click="push">Push Page 2</v-ons-button>
             </div>
         </v-ons-page>
     </template>
@@ -47,27 +52,28 @@
         <v-ons-page>
             <div class="result-wrapper">
                 <div class="result-discription">
-                    <h2 class="result-status">恭喜您冲顶成功！</h2>
-                    <h2 class="result-status">失败乃成功之母，祝您下次成功！</h2>
+                    <h2 class="result-status" v-if="win">恭喜您冲顶成功！</h2>
+                    <h2 class="result-status" v-else>失败乃成功之母，祝您下次旗开得胜！</h2>
                     <div class="result-start">
-                        <p>共有<span>{{}}</span>名玩家参与游戏，<span>{{}}</span>人冲顶成功</p>
+                        <p style="font-size:1.2rem">共有
+                            <span>{{playerAmount}}</span>名玩家参与游戏，
+                            <span>{{remainders}}</span>人冲顶成功</p>
                     </div>
                 </div>
             </div>
-            <v-ons-button @click="push">Push Page 2</v-ons-button>
         </v-ons-page>
     </template>
 
-    <!-- 测试页面 -->
+    <!-- 游戏页面 -->
     <template id="quiz">
         <v-ons-page>
             <div class="game-wrapper">
                 <div class="game-header">
                     <div class="turn-display">题目轮次
-                        <span class="text-lg">{{turnIndex}}</span>/
+                        <span class="text-lg" style="margin-right:5px;">{{turnIndex}}</span>/
                         <span></span>{{turnTotal}}</div>
-                    <div class="amount-display">剩余人数
-                        <span class="text-lg">{{remainders}}</span>/
+                    <div class="amount-display">存留人数
+                        <span class="text-lg" style="margin-right:5px;">{{remainders}}</span>/
                         <span>{{playerAmount}}</span>
                     </div>
                 </div>
@@ -76,11 +82,18 @@
                     <div class="quiz-head">
                         <h4>{{quizTitle}}</h4>
                     </div>
-                    <div class="kickout-msg" v-show="kickoutMsg">
+                    <div class="kickout-msg" v-show="lose">
                         <p>{{ kickoutMsg }}</p>
                     </div>
                     <v-ons-list>
-                        <v-ons-list-item :tappable="!gameOver" v-for="(item,index) in questions" :key="index">
+                        <!-- <p>picked:{{picked}}</p>
+                        <p>right:{{right}}</p>
+                        <p>rightAnswer:{{rightAnswer}}</p> -->
+                        <v-ons-list-item 
+                            :class="{'right-answer': (right == 1 && picked == item.key) || rightAnswer == item.key, 'wrong-answer': !right && picked == item.key}" 
+                            :tappable="tappable"
+                            v-for="(item,index) in options"
+                            :key="index">
                             <label class="left">
                                 <v-ons-radio :input-id="'radio-' + index" :value="item.key" v-model="picked" @click="pickChange($event)">
                                 </v-ons-radio>
@@ -103,9 +116,11 @@
                     </v-ons-list>
                 </div>
             </div>
+            <button @click="push()">提交结果</button>
         </v-ons-page>
     </template>
-
+    <script src="https://cdn.bootcss.com/moment.js/2.21.0/moment.min.js"></script>
+    <script src="https://cdn.bootcss.com/axios/0.18.0/axios.min.js"></script>
     <script src="./js/lib/vue-ons.js"></script>
     <script src="./js/index.js"></script>
 </body>

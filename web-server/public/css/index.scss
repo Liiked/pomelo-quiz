@@ -1,15 +1,20 @@
-body, html{
+$green: #4caf50;
+$red: #FF5722;
+body,
+html {
     font-size: 16px;
 }
 
 // 欢迎页面
-.welcome-wrapper{
+.welcome-wrapper {
     width: 100%;
     height: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
-    .game-discription{
+    box-sizing: border-box;
+    padding: 20px;
+    .game-discription {
         text-align: center;
         .game-status {
             font-size: 2rem;
@@ -20,14 +25,15 @@ body, html{
         }
     }
 }
+
 // 游戏页面
-.game-wrapper{
+.game-wrapper {
     width: 100%;
     height: 100%;
     font-size: 1rem;
     background: white;
     .game-header {
-        padding: 20px;
+        padding: 10px 20px;
         display: flex;
         height: 50px;
         align-items: center;
@@ -38,12 +44,12 @@ body, html{
             font-size: 1.5rem;
         }
     }
-    .game-body{
+    .game-body {
         margin-top: 40px;
         .quiz-head {
             padding: 0 20px;
-            h4{
-                font-size: 1.5rem;
+            h4 {
+                font-size: 1.3rem;
                 font-weight: bold;
             }
         }
@@ -53,18 +59,54 @@ body, html{
         }
         .list-item__center {
             font-size: 1.2rem;
+        } // 正误
+        .right-answer {
+            .list-item__center {
+                color: $green;
+            }
+            .radio-button__checkmark {
+                &:after {
+                    border-color: $green;
+                }
+            }
+            .radio-button--material__checkmark {
+                &::before{
+                    border-color:$green;
+                }
+                &::after{
+                    background-color: $green;
+                }
+            }
+        }
+        .wrong-answer {
+            .list-item__center {
+                color: $red;
+            }
+            .radio-button__checkmark {
+                &::after {
+                    border-color: $red;
+                }
+            }
+            .radio-button--material__checkmark {
+                &::before{
+                    border-color:$red;
+                }
+                &::after{
+                    background-color: $red;
+                }
+            }
         }
     }
 }
 
 // 结果页面
-.result-wrapper{
+.result-wrapper {
     width: 100%;
     height: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
-    .result-discription{
+    .result-discription {
         text-align: center;
         .result-status {
             font-size: 2rem;
@@ -76,8 +118,7 @@ body, html{
     }
 }
 
-
-.badge{
+.badge {
     margin: 0 5px;
     padding: 5px 10px;
     background-color: #2196f3;
@@ -85,6 +126,6 @@ body, html{
     color: white;
 }
 
-.badge.badge-danger{
+.badge.badge-danger {
     background-color: #FF5722;
 }
