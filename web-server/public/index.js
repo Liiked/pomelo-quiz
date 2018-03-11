@@ -98,6 +98,7 @@ var quiz = {
                 answer: id
             }, function (data) {
                 // console.log(data);
+                _this2.tappable = false;
                 if (data.error) {
                     _this2.$ons.notification.toast('服务器出错了，抱歉', {
                         timeout: 2000
@@ -106,7 +107,6 @@ var quiz = {
                 }
                 _this2.right = data.result;
                 if (!data.result) {
-                    _this2.tappable = false;
                     _this2.lose = true;
                     _this2.rightAnswer = data.answer;
                 }

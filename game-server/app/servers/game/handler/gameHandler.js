@@ -63,12 +63,18 @@ handler.send = function (msg, session, next) {
 				redis.get(resultInRedis).then(d => {
 					let f = JSON.parse(d);
 					f.winners.push(data);
-					f.winner_amount ++;
+					f.winner_amount++;
 					redis.set(resultInRedis, JSON.stringify(f));
 				})
 			}
 		} else {
-			--gameMaster.remainPlayer
+			let resultInRedis = `gameResult:${config.id}`
+			redis.get(resultInRedis).then(d => {
+				let f = JSON.parse(d);
+				f.remain_players--;
+				gameMaster.remainPlayer = f.remain_players;
+				redis.set(resultInRedis, JSON.stringify(f));
+			});
 		}
 
 		data.answers.push(res);

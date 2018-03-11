@@ -91,6 +91,7 @@ var quiz = {
                 answer: id
             }, data => {
                 // console.log(data);
+                this.tappable = false
                 if (data.error) {
                     this.$ons.notification.toast('服务器出错了，抱歉', {
                         timeout: 2000,
@@ -99,7 +100,6 @@ var quiz = {
                 }
                 this.right = data.result
                 if (!data.result) {
-                    this.tappable = false
                     this.lose = true
                     this.rightAnswer = data.answer
                 }

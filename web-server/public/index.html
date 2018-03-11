@@ -85,6 +85,9 @@
                     <div class="kickout-msg" v-show="lose">
                         <p>{{ kickoutMsg }}</p>
                     </div>
+                    <div class="right-msg" v-show="right != -1 && right">
+                        <p>恭喜，回答正确</p>
+                    </div>
                     <v-ons-list>
                         <!-- <p>picked:{{picked}}</p>
                         <p>right:{{right}}</p>

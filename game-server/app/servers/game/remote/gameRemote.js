@@ -33,6 +33,7 @@ gameRemote.prototype.add = function (uid, player, sid, name, flag, cb) {
 	redis.get(resultInRedis).then(d=> {
 		let data = JSON.parse(d);
 		data.player_amount ++;
+		data.remain_players ++;
 		redis.set(resultInRedis,JSON.stringify(data));
 	})
 
@@ -154,7 +155,6 @@ gameRemote.prototype.kick = function (uid, sid, name, cb) {
 		channel.leave(uid, sid);
 	}
 	var openid = uid.split('*')[0];
-	
 
 	gameMaster.redis.get(`u_${openid}`).then(d => {
 		let data = JSON.parse(d)
@@ -165,6 +165,12 @@ gameRemote.prototype.kick = function (uid, sid, name, cb) {
 
 	// 参与人数
 	// let total = channel.getUserAmount()
+	let resultInRedis = `gameResult:${gameMaster.config.id}`
+	redis.get(resultInRedis).then(d=> {
+		let data = JSON.parse(d);
+		data.remain_players --;
+		redis.set(resultInRedis,JSON.stringify(data));
+	})
 	
 	// 用户数变化 
 	let param = {

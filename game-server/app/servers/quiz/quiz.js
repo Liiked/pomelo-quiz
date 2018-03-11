@@ -219,7 +219,8 @@ Game.prototype.gameLoop = function () {
                     "endTimestamp": '',
                     "winner_amount": 0,
                     "player_amount": 0,
-                    'winners':[]
+                    'winners':[],
+                    'remain_players': 0
                 }))
                 this.gameState = GAME_STATE[1]
 
