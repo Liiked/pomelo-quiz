@@ -1,6 +1,7 @@
 var express = require('express');
 var app = express();
 const axios = require('axios');
+const wechatConfig = require('./wechatConfig')
 // let user = require('./routes/user');
 
 app.configure(function () {
@@ -23,15 +24,13 @@ app.configure('development', function () {
 	}));
 	app.get('/getUerInfo/:code', function (req, res) {
 		let param = req.params;
-		console.log(req.params);
 		axios.get('https://api.weixin.qq.com/sns/oauth2/access_token?appid=' +
-			'wxc0aa02ca51509241' +
+			wechatConfig.appID +
 			'&secret=' +
-			'2ff4f56598234553fc2a0a08c276b3eb' +
+			wechatConfig.secret +
 			'&code=' +
 			param.code +
 			'&grant_type=authorization_code').then(d => {
-				console.log(d.data);
 			let [openID, token] = [d.data.openid, d.data.access_token]
 			
 			axios.get(`https://api.weixin.qq.com/sns/userinfo?access_token=${token}&openid=${openID}&lang=zh_CN`).then(d => {
