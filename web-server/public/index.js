@@ -1,9 +1,11 @@
+'use strict';
+
 var bus = new Vue();
 
 var quiz = {
     key: 'quiz',
     template: '#quiz',
-    data() {
+    data: function data() {
         return {
             // 题目
             quizTitle: '巴拉巴拉哈哈哈哈航啊', //题目标题
@@ -29,44 +31,46 @@ var quiz = {
             lose: false,
             kickoutMsg: '您已答错过题目，不可以继续作答了哦',
             win: false
-        }
+        };
     },
-    mounted() {
+    mounted: function mounted() {
+        var _this = this;
+
         // 收发器
 
-        bus.$on('game-state-coming', (d) => {
-            this.start = d;
-        })
+        bus.$on('game-state-coming', function (d) {
+            _this.start = d;
+        });
 
-        bus.$on('remainders', (d) => {
-            this.remainders = d.remainders
-            this.playerAmount = d.playerAmount
-        })
+        bus.$on('remainders', function (d) {
+            _this.remainders = d.remainders;
+            _this.playerAmount = d.playerAmount;
+        });
 
-        bus.$on('quiz-coming', d => {
-            if (this.turnIndex > 0 && !this.picked && !this.lose) {
-                this.lose = true;
-                this.kickoutMsg = '您已经放弃答题，请在下一轮游戏中再接再厉'
-                this.emptyAnswer(this.quizID, this.turnIndex, 0)
+        bus.$on('quiz-coming', function (d) {
+            if (_this.turnIndex > 0 && !_this.picked && !_this.lose) {
+                _this.lose = true;
+                _this.kickoutMsg = '您已经放弃答题，请在下一轮游戏中再接再厉';
+                _this.emptyAnswer(_this.quizID, _this.turnIndex, 0);
             }
-            this.initQuestion()
+            _this.initQuestion();
             console.log(d);
-            this.turnIndex = d.turnIndex
-            this.turnTotal = d.turnTotal
-            this.quizTitle = d.quizTitle
-            this.options = d.options
-            this.quizID = d.quizID
-        })
+            _this.turnIndex = d.turnIndex;
+            _this.turnTotal = d.turnTotal;
+            _this.quizTitle = d.quizTitle;
+            _this.options = d.options;
+            _this.quizID = d.quizID;
+        });
 
-        bus.$on('turn-countdown', d => {
-            this.turnCountdown = d.time;
-            this.remainders = d.remainders
-            this.playerAmount = d.playerAmount
-        })
-
+        bus.$on('turn-countdown', function (d) {
+            _this.turnCountdown = d.time;
+            _this.remainders = d.remainders;
+            _this.playerAmount = d.playerAmount;
+        });
     },
+
     methods: {
-        pushNext() {
+        pushNext: function pushNext() {
             this.$emit('push-page', {
                 extends: result,
                 onsNavigatorProps: {
@@ -76,49 +80,52 @@ var quiz = {
                 }
             });
         },
-        pickChange(e) {
+        pickChange: function pickChange(e) {
             if (!this.tappable) {
                 e.preventDefault();
                 return;
             }
         },
+
         // 答题、获取游戏结果
-        answer(id) {
+        answer: function answer(id) {
+            var _this2 = this;
+
             pomelo.request("game.gameHandler.send", {
                 rid: 'quiz',
                 quiz_id: this.quizID,
                 order_id: this.turnIndex,
                 answer: id
-            }, data => {
+            }, function (data) {
                 // console.log(data);
                 if (data.error) {
-                    this.$ons.notification.toast('服务器出错了，抱歉', {
-                        timeout: 2000,
-                    })
+                    _this2.$ons.notification.toast('服务器出错了，抱歉', {
+                        timeout: 2000
+                    });
                     return;
                 }
-                this.right = data.result
+                _this2.right = data.result;
                 if (!data.result) {
-                    this.tappable = false
-                    this.lose = true
-                    this.rightAnswer = data.answer
+                    _this2.tappable = false;
+                    _this2.lose = true;
+                    _this2.rightAnswer = data.answer;
                 }
                 if (data.win) {
-                    this.win = true
+                    _this2.win = true;
                 }
             });
         },
-        emptyAnswer(quizID,turnIndex,id) {
+        emptyAnswer: function emptyAnswer(quizID, turnIndex, id) {
             pomelo.request("game.gameHandler.send", {
                 rid: 'quiz',
                 quiz_id: quizID,
                 order_id: turnIndex,
                 answer: id
-            }, data => {
+            }, function (data) {
                 console.log('empty answer');
             });
         },
-        initQuestion() {
+        initQuestion: function initQuestion() {
             console.log('ex-----------');
             if (this.lose) {
                 this.tappable = false;
@@ -128,29 +135,28 @@ var quiz = {
             this.right = -1;
             this.rightAnswer = -1;
             this.picked = 0;
-
-        },
+        }
     },
     watch: {
-        start(v) {
+        start: function start(v) {
             if (v == 'stop') {
-                this.pushNext()
+                this.pushNext();
             }
         },
-        picked(latest, old) {
+        picked: function picked(latest, old) {
             if (!latest) {
                 return;
             }
-            this.tappable = false
-            this.answer(latest)
+            this.tappable = false;
+            this.answer(latest);
         }
-    },
+    }
 };
 
 var welcome = {
     key: 'welcome',
     template: '#welcome',
-    data() {
+    data: function data() {
         return {
             // 用户信息
             logined: false,
@@ -162,54 +168,55 @@ var welcome = {
             // 比赛数据
             start: 'stop', // 游戏是否开始
             countdown: 0,
-            gameStartAt: '', // 游戏开始时间
-        }
+            gameStartAt: '' // 游戏开始时间
+        };
     },
-    mounted() {
-        bus.$on('user-coming', (d) => {
-            this.logined = d.logined
-            this.userName = d.userName
-            this.openid = d.openid
-            this.gender = d.gender
-            this.headimgurl = d.headimgurl
-        })
+    mounted: function mounted() {
+        var _this3 = this;
 
-        bus.$on('error-coming', (d) => {
-            this.loginError = d;
-        })
+        bus.$on('user-coming', function (d) {
+            _this3.logined = d.logined;
+            _this3.userName = d.userName;
+            _this3.openid = d.openid;
+            _this3.gender = d.gender;
+            _this3.headimgurl = d.headimgurl;
+        });
+
+        bus.$on('error-coming', function (d) {
+            _this3.loginError = d;
+        });
 
         // 倒计时和游戏开始
-        bus.$on('countdown-coming', (d) => {
-            this.countdown = d.countdown;
-            this.gameStartAt = d.startAt;
-        })
-        bus.$on('game-state-coming', (d) => {
-            this.start = d;
-        })
-
+        bus.$on('countdown-coming', function (d) {
+            _this3.countdown = d.countdown;
+            _this3.gameStartAt = d.startAt;
+        });
+        bus.$on('game-state-coming', function (d) {
+            _this3.start = d;
+        });
     },
+
     computed: {
-        gameState() {
-            let a = {
+        gameState: function gameState() {
+            var a = {
                 start: '游戏即将开始',
                 playing: '游戏正在进行',
                 end: '游戏结束',
                 stop: '游戏尚未就绪'
-            }
-            return a[this.start]
+            };
+            return a[this.start];
         },
-        startAt() {
+        startAt: function startAt() {
             if (!this.gameStartAt) {
-                return ''
+                return '';
             }
-            return moment.unix(this.gameStartAt).format('YYYY年MM月DD日 HH:mm:ss')
+            return moment.unix(this.gameStartAt).format('YYYY年MM月DD日 HH:mm:ss');
         }
     },
     watch: {
-        start(v) {
+        start: function start(v) {
             if (v == 'playing' && this.countdown == 1) {
                 this.$emit('push-page', quiz);
-
             }
         }
     }
@@ -219,10 +226,10 @@ var result = {
     key: 'result',
     template: '#result',
     props: ['win', 'playerAmount', 'remainders'],
-    data() {
-        return {}
+    data: function data() {
+        return {};
     },
-    mounted() {
+    mounted: function mounted() {
         console.log('mountd');
     }
 };
@@ -230,7 +237,7 @@ var result = {
 var app = new Vue({
     el: '#app',
     template: '#main',
-    data() {
+    data: function data() {
         return {
             // 页面
             pageStack: [welcome],
@@ -264,70 +271,73 @@ var app = new Vue({
             order: 0,
             totalQuiz: 0,
             options: [],
-            turnCountdown: 0,
+            turnCountdown: 0
         };
     },
-    mounted() {
+    mounted: function mounted() {
+        var _this4 = this;
+
         this.wechatLogin();
 
         // 用户断开连接
-        pomelo.on('disconnect', reason => {
-            this.logined = false
+        pomelo.on('disconnect', function (reason) {
+            _this4.logined = false;
             console.error(reason);
         });
 
         // 用户数推送
-        pomelo.on('playerAmountChange', d => {
-            this.playerAmount = d.total;
-            this.remainders = d.remain;
-            console.group('playerAmountChange')
+        pomelo.on('playerAmountChange', function (d) {
+            _this4.playerAmount = d.total;
+            _this4.remainders = d.remain;
+            console.group('playerAmountChange');
             console.log(d);
-            console.groupEnd('playerAmountChange')
+            console.groupEnd('playerAmountChange');
         });
         // 游戏进行状态
-        pomelo.on('gameState', d => {
-            this.start = d.state || 'stop';
-            this.startAt = d.startAt
-            if (this.start == 'stop' || this.start == 'end') {
-                this.question = ''
+        pomelo.on('gameState', function (d) {
+            _this4.start = d.state || 'stop';
+            _this4.startAt = d.startAt;
+            if (_this4.start == 'stop' || _this4.start == 'end') {
+                _this4.question = '';
             }
-            console.group('game-state')
+            console.group('game-state');
             console.log(d);
-            console.groupEnd('game-state')
+            console.groupEnd('game-state');
 
             if (d.state == 'start') {
-                this.$emit('push-page', quiz);
+                _this4.$emit('push-page', quiz);
             }
         });
         // 比赛倒计时推送
-        pomelo.on('gameCountdown', d => {
-            this.countdown = d.time
-            console.group('countdown')
+        pomelo.on('gameCountdown', function (d) {
+            _this4.countdown = d.time;
+            console.group('countdown');
             console.log(d);
-            console.groupEnd('countdown')
+            console.groupEnd('countdown');
         });
         // 回合倒计时推送
-        pomelo.on('onTurn', d => {
-            this.turnCountdown = d.time
+        pomelo.on('onTurn', function (d) {
+            _this4.turnCountdown = d.time;
         });
         // 题目推送
-        pomelo.on('turnQuiz', d => {
-            this.question = d.question
-            this.options = d.options
-            this.q_id = d.q_id
-            this.totalQuiz = d.total
-            this.order = d.order
-            this.picked = null
-            console.group('turnQuiz')
+        pomelo.on('turnQuiz', function (d) {
+            _this4.question = d.question;
+            _this4.options = d.options;
+            _this4.q_id = d.q_id;
+            _this4.totalQuiz = d.total;
+            _this4.order = d.order;
+            _this4.picked = null;
+            console.group('turnQuiz');
             console.log(d);
-            console.groupEnd('turnQuiz')
-            if (!this.lose) {
-                this.cantEdit = false
+            console.groupEnd('turnQuiz');
+            if (!_this4.lose) {
+                _this4.cantEdit = false;
             }
         });
     },
+
     watch: {
-        logined(latest, old) {
+        logined: function logined(latest, old) {
             if (latest) {
                 var data = {
                     userName: this.userName,
@@ -335,20 +345,19 @@ var app = new Vue({
                     gender: this.gender,
                     headimgurl: this.headimgurl,
                     logined: latest
-                }
-                bus.$emit('user-coming', data)
+                };
+                bus.$emit('user-coming', data);
             }
         },
-        errorMsg(latest, old) {
+        errorMsg: function errorMsg(latest, old) {
             bus.$emit('error-coming', latest);
         },
-        countdown(latest) {
+        countdown: function countdown(latest) {
             var data = {
                 countdown: latest,
                 startAt: this.startAt
-            }
-            // 进入游戏
-            if (latest == 1) {
+                // 进入游戏
+            };if (latest == 1) {
                 this.$emit('push-page', quiz);
 
                 bus.$emit('remainders', {
@@ -358,27 +367,28 @@ var app = new Vue({
             }
             bus.$emit('countdown-coming', data);
         },
-        start(latest) {
+        start: function start(latest) {
             bus.$emit('game-state-coming', latest);
         },
+
         // 回合
-        turnCountdown(v) {
+        turnCountdown: function turnCountdown(v) {
             bus.$emit('turn-countdown', {
                 time: v,
                 remainders: this.remainders,
                 playerAmount: this.playerAmount
-            })
+            });
         },
-        order(v) {
+        order: function order(v) {
             bus.$emit('quiz-coming', {
                 turnIndex: v,
                 turnTotal: this.totalQuiz,
                 quizTitle: this.question,
                 options: this.options,
                 quizID: this.q_id
-            })
+            });
         },
-        remain(v) {
+        remain: function remain(v) {
             bus.$emit('remainders', {
                 remainders: v,
                 playerAmount: this.playerAmount
@@ -386,82 +396,86 @@ var app = new Vue({
         }
     },
     methods: {
-        wechatLogin() {
-            let param = GetRequest();
+        wechatLogin: function wechatLogin() {
+            var _this5 = this;
+
+            var param = GetRequest();
 
             if (!param.code) {
-                let url = encodeURIComponent('http://' + location.host + '/')
-                location.href = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=' +
-                    'wxc0aa02ca51509241' +
-                    '&redirect_uri=' +
-                    url +
-                    '&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect'
+                var url = encodeURIComponent('http://' + location.host + '/');
+                location.href = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=' + 'wxc0aa02ca51509241' + '&redirect_uri=' + url + '&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect';
             } else {
-                axios.get('/getUerInfo/' + param.code).then(d => {
-                    let data = d.data;
+                axios.get('/getUerInfo/' + param.code).then(function (d) {
+                    var data = d.data;
 
                     if (data.errcode == 40001) {
-                        location.href = '//' + location.host
+                        location.href = '//' + location.host;
                     }
 
-                    this.userName = data.nickname
-                    this.headimgurl = data.headimgurl
-                    this.openid = data.openid
-                    this.gender = data.sex
-                    this.dispatchServer()
+                    _this5.userName = data.nickname;
+                    _this5.headimgurl = data.headimgurl;
+                    _this5.openid = data.openid;
+                    _this5.gender = data.sex;
+                    _this5.dispatchServer();
                     console.log(d.data);
-                }).catch(e => {
-                    alert('出错')
-                })
+                }).catch(function (e) {
+                    alert('出错');
+                });
             }
         },
+
         // 获取服务器
-        dispatchServer() {
+        dispatchServer: function dispatchServer() {
+            var _this6 = this;
+
             pomelo.init({
                 host: window.location.hostname,
                 port: 3014,
                 log: true
-            }, () => {
+            }, function () {
                 pomelo.request('gate.gateHandler.queryEntry', {
-                    uid: this.openid
-                }, (data) => {
+                    uid: _this6.openid
+                }, function (data) {
                     // 关闭入口
                     console.log(data);
                     pomelo.disconnect();
                     if (data.code == 500) {
                         console.log('login failed');
                         if (data.msg) {
-                            this.errorMsg = data.msg;
+                            _this6.errorMsg = data.msg;
                         }
-                        return
+                        return;
                     }
-                    this.enter(data.host, data.port)
+                    _this6.enter(data.host, data.port);
                 });
-            })
+            });
         },
+
         // 进入游戏
-        enter(host, port) {
+        enter: function enter(host, port) {
+            var _this7 = this;
+
             pomelo.init({
                 host: host,
                 port: port,
                 log: true
-            }, () => {
+            }, function () {
                 pomelo.request("connector.entryHandler.enter", {
-                    username: this.userName,
-                    openid: this.openid,
-                    avatar: this.headimgurl,
-                    sex: this.gender,
+                    username: _this7.userName,
+                    openid: _this7.openid,
+                    avatar: _this7.headimgurl,
+                    sex: _this7.gender,
                     rid: 'quiz'
-                }, data => {
+                }, function (data) {
                     console.log(data);
                     if (data.err) {
-                        alert(data.err)
+                        alert(data.err);
                         return;
                     }
-                    this.logined = true;
+                    _this7.logined = true;
                 });
             });
-        },
+        }
     }
 });
 
@@ -473,7 +487,7 @@ function GetRequest() {
         var str = url.substr(1);
         var strs = str.split("&");
         for (var i = 0; i < strs.length; i++) {
-            theRequest[strs[i].split("=")[0]] = (strs[i].split("=")[1]);
+            theRequest[strs[i].split("=")[0]] = strs[i].split("=")[1];
         }
     }
     return theRequest;
