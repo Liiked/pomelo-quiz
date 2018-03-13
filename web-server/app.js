@@ -1,8 +1,17 @@
 var express = require('express');
 var app = express();
 const axios = require('axios');
-const wechatConfig = require('./wechatConfig')
+const wechatConfig = require('./wechatConfig');
+const moment = require('moment')
 // let user = require('./routes/user');
+
+const Redis = require('ioredis');
+let redis = new Redis({
+    port: 6379, // Redis port
+    host: '127.0.0.1', // Redis host
+    family: 4, // 4 (IPv4) or 6 (IPv6)
+    db: 0
+})
 
 app.configure(function () {
 	app.use(express.methodOverride());
@@ -37,6 +46,35 @@ app.configure('development', function () {
 				console.log(d.data);
 				res.send(d.data);
 			})
+		})
+
+	})
+	app.get('/getGame', function (req, res) {
+		
+		redis.get('game').then(d=> {
+			let data = JSON.parse(d)
+			console.log(data);
+			if (!data.start_time) {
+				res.send({
+					start: -1,
+					beforeStart: -1
+				});
+				return;
+			}
+
+			let diff = Number(moment.unix(data.start_time).diff(moment()) / 1000).toFixed(0);
+			if (diff > 0) {
+				res.send({
+					start:data.start_time,
+					beforeStart: data.to_start || 5,
+					reward: data.reward,
+				});
+			} else {
+				res.send({
+					start: -1,
+					beforeStart: -1
+				});
+			}
 		})
 
 	})

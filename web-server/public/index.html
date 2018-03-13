@@ -18,6 +18,11 @@
     <script type="text/javascript">
         require('boot');
     </script>
+    <style>
+        .hide {
+            display: none;
+        }
+    </style>
 </head>
 
 <body>
@@ -34,14 +39,21 @@
                 <div class="game-discription">
                     <h2 class="game-status">{{gameState}}</h2>
                     <div class="game-start">
+                        <div v-if="showGameInfo" class="hide">
+                            <p style="font-size: 1.2rem;">游戏将于{{willStart}}开始</p>
+                            <p style="font-size: 1.2rem;">即将开始的游戏奖金总额为
+                                <span style="font-weight:bold;">{{reward}}</span>元</p>
+                        </div>
                         <p style="font-size: 1.2rem;" v-if="loginError">{{loginError}}</p>
-                        <p style="font-size: 1.2rem;" v-if="!logined">您还未进入游戏</p>
+                        <!-- <p style="font-size: 1.2rem;" v-if="!logined">您还未进入游戏</p> -->
                         <div v-if="logined">
                             <p style="font-size: 0.9rem;" v-if="start == 'start'">游戏将于{{startAt}}开始</p>
                             <p style="font-size: 1.2rem;" v-if="start == 'playing'">游戏正在进行中，请耐心等待下一轮</p>
                             <p style="font-size: 1.2rem;" v-if="start == 'start'">距离游戏开始还有
                                 <span>{{countdown}}</span>秒
                             </p>
+                            <p style="font-size: 1.2rem;" v-if="start == 'start'">即将开始的游戏奖金为
+                                <span style="font-weight:bold;">{{reward}}</span>元</p>
                         </div>
                     </div>
                 </div>
@@ -60,6 +72,12 @@
                         <p style="font-size:1.2rem">共有
                             <span>{{playerAmount}}</span>名玩家参与游戏，
                             <span>{{remainders}}</span>人冲顶成功</p>
+                        <p style="font-size:1.2rem" v-if="remainders > 0">
+                            共同瓜分{{reward}}元奖金，每人{{eachReward}}元
+                        </p>
+                        <p style="font-size:1.2rem" v-else>
+                            本次{{reward}}元奖金，很遗憾没有人获奖
+                        </p>
                     </div>
                 </div>
             </div>
@@ -90,17 +108,18 @@
                     <div class="right-msg" v-show="right != -1 && right">
                         <p>恭喜，回答正确</p>
                     </div>
+                    <div class="kickout-msg" v-show="!right && !lose">
+                        <p>很遗憾，你的答案错了</p>
+                    </div>
                     <v-ons-list>
-                        <!-- <p>picked:{{picked}}</p>
+                        <!-- <p>tappable:{{tappable}}</p>
+                        <p>picked:{{picked}}</p>
                         <p>right:{{right}}</p>
                         <p>rightAnswer:{{rightAnswer}}</p> -->
-                        <v-ons-list-item 
-                            :class="{'right-answer': (right == 1 && picked == item.key) || rightAnswer == item.key, 'wrong-answer': !right && picked == item.key}" 
-                            :tappable="tappable"
-                            v-for="(item,index) in options"
-                            :key="index">
+                        <v-ons-list-item :class="{'right-answer': (right == 1 && picked == item.key) || rightAnswer == item.key, 'wrong-answer': !right && picked == item.key}"
+                            :tappable="tappable" v-for="(item,index) in options" :key="index">
                             <label class="left">
-                                <v-ons-radio :input-id="'radio-' + index" :value="item.key" v-model="picked" @click="pickChange($event)">
+                                <v-ons-radio :input-id="'radio-' + index" :value="item.key" v-model="picked" @click="pickChange($event)" :disabled="!tappable">
                                 </v-ons-radio>
                             </label>
                             <label class="center" :for="'radio-' + index">

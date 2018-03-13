@@ -3,6 +3,7 @@ var bus = new Vue();
 var quiz = {
     key: 'quiz',
     template: '#quiz',
+    props: ['reward'],
     data() {
         return {
             // 题目
@@ -22,7 +23,7 @@ var quiz = {
             picked: 0,
             // 游戏状态
             start: 'stop',
-            tappable: true,
+            tappable: 1,
             right: -1,
             rightAnswer: -1,
             gameOver: false,
@@ -44,6 +45,9 @@ var quiz = {
         })
 
         bus.$on('quiz-coming', d => {
+            if (!this.right) {
+                this.lose = true
+            }
             if (this.turnIndex > 0 && !this.picked && !this.lose) {
                 this.lose = true;
                 this.kickoutMsg = '您已经放弃答题，请在下一轮游戏中再接再厉'
@@ -72,7 +76,8 @@ var quiz = {
                 onsNavigatorProps: {
                     win: this.win,
                     remainders: this.remainders,
-                    playerAmount: this.playerAmount
+                    playerAmount: this.playerAmount,
+                    reward: this.reward
                 }
             });
         },
@@ -90,25 +95,21 @@ var quiz = {
                 order_id: this.turnIndex,
                 answer: id
             }, data => {
-                // console.log(data);
-                this.tappable = false
+                console.log(data);
                 if (data.error) {
                     this.$ons.notification.toast('服务器出错了，抱歉', {
                         timeout: 2000,
                     })
                     return;
                 }
-                this.right = data.result
-                if (!data.result) {
-                    this.lose = true
-                    this.rightAnswer = data.answer
-                }
                 if (data.win) {
                     this.win = true
                 }
+                this.right = data.result
+                this.rightAnswer = data.answer
             });
         },
-        emptyAnswer(quizID,turnIndex,id) {
+        emptyAnswer(quizID, turnIndex, id) {
             pomelo.request("game.gameHandler.send", {
                 rid: 'quiz',
                 quiz_id: quizID,
@@ -121,9 +122,9 @@ var quiz = {
         initQuestion() {
             console.log('ex-----------');
             if (this.lose) {
-                this.tappable = false;
+                this.tappable = 0;
             } else {
-                this.tappable = true;
+                this.tappable = 1;
             }
             this.right = -1;
             this.rightAnswer = -1;
@@ -141,7 +142,7 @@ var quiz = {
             if (!latest) {
                 return;
             }
-            this.tappable = false
+            this.tappable = 0
             this.answer(latest)
         }
     },
@@ -163,9 +164,17 @@ var welcome = {
             start: 'stop', // 游戏是否开始
             countdown: 0,
             gameStartAt: '', // 游戏开始时间
+            // express服务器数据
+            showGameInfo: false,
+            willStartAt: '',
+            beforeStart: '',
+            reward: 0,
+            readyID: null
         }
     },
     mounted() {
+        this.getGameInfo()
+
         bus.$on('user-coming', (d) => {
             this.logined = d.logined
             this.userName = d.userName
@@ -203,14 +212,62 @@ var welcome = {
                 return ''
             }
             return moment.unix(this.gameStartAt).format('YYYY年MM月DD日 HH:mm:ss')
+        },
+        willStart() {
+            if (!this.willStartAt) {
+                return ''
+            }
+            return moment.unix(this.willStartAt).format('YYYY年MM月DD日 HH:mm:ss')
+        }
+    },
+    methods: {
+        getGameInfo() {
+            axios.get('/getGame').then(d => {
+                var data = d.data;
+                if (data.start != -1) {
+                    this.willStartAt = data.start
+                    this.beforeStart = data.beforeStart
+                    this.reward = data.reward
+                    if (!this.gameStartAt) {
+                        this.showGameInfo = true
+                        this.readyToGo()
+                    }
+                }
+
+                console.log(d);
+            }).catch(e => {
+                alert('express 服务出错')
+            })
+        },
+        readyToGo() {
+            this.readyID = setInterval(_ => {
+                var nowToStart = Number(moment.unix(this.willStartAt).diff(moment()) / 1000).toFixed(0)
+                var diff = Number(nowToStart) - 60 * Number(this.beforeStart)
+                if (diff < 0) {
+                    clearInterval(this.readyID)
+                    location.reload()
+                }
+            }, 15000)
         }
     },
     watch: {
         start(v) {
             if (v == 'playing' && this.countdown == 1) {
-                this.$emit('push-page', quiz);
+                this.$emit('push-page', {
+                    extends: quiz,
+                    onsNavigatorProps: {
+                        reward: this.reward
+                    }
+                });
 
             }
+        },
+        gameStartAt(v) {
+            if (v) {
+                this.showGameInfo = false
+                clearTimeout(this.readyID)
+            }
+
         }
     }
 };
@@ -218,12 +275,14 @@ var welcome = {
 var result = {
     key: 'result',
     template: '#result',
-    props: ['win', 'playerAmount', 'remainders'],
-    data() {
-        return {}
-    },
+    props: ['win', 'playerAmount', 'remainders', 'reward'],
     mounted() {
         console.log('mountd');
+    },
+    computed:{
+        eachReward() {
+            return (Number(this.reward) / Number(this.remainders)).toFixed(0)
+        }
     }
 };
 
@@ -294,10 +353,6 @@ var app = new Vue({
             console.group('game-state')
             console.log(d);
             console.groupEnd('game-state')
-
-            if (d.state == 'start') {
-                this.$emit('push-page', quiz);
-            }
         });
         // 比赛倒计时推送
         pomelo.on('gameCountdown', d => {
@@ -430,9 +485,13 @@ var app = new Vue({
                     pomelo.disconnect();
                     if (data.code == 500) {
                         console.log('login failed');
+
                         if (data.msg) {
                             this.errorMsg = data.msg;
                         }
+
+
+
                         return
                     }
                     this.enter(data.host, data.port)
@@ -461,7 +520,7 @@ var app = new Vue({
                     this.logined = true;
                 });
             });
-        },
+        }
     }
 });
 

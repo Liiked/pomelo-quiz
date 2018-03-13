@@ -5,6 +5,7 @@ var bus = new Vue();
 var quiz = {
     key: 'quiz',
     template: '#quiz',
+    props: ['reward'],
     data: function data() {
         return {
             // 题目
@@ -24,7 +25,7 @@ var quiz = {
             picked: 0,
             // 游戏状态
             start: 'stop',
-            tappable: true,
+            tappable: 1,
             right: -1,
             rightAnswer: -1,
             gameOver: false,
@@ -48,6 +49,9 @@ var quiz = {
         });
 
         bus.$on('quiz-coming', function (d) {
+            if (!_this.right) {
+                _this.lose = true;
+            }
             if (_this.turnIndex > 0 && !_this.picked && !_this.lose) {
                 _this.lose = true;
                 _this.kickoutMsg = '您已经放弃答题，请在下一轮游戏中再接再厉';
@@ -76,7 +80,8 @@ var quiz = {
                 onsNavigatorProps: {
                     win: this.win,
                     remainders: this.remainders,
-                    playerAmount: this.playerAmount
+                    playerAmount: this.playerAmount,
+                    reward: this.reward
                 }
             });
         },
@@ -97,22 +102,18 @@ var quiz = {
                 order_id: this.turnIndex,
                 answer: id
             }, function (data) {
-                // console.log(data);
-                _this2.tappable = false;
+                console.log(data);
                 if (data.error) {
                     _this2.$ons.notification.toast('服务器出错了，抱歉', {
                         timeout: 2000
                     });
                     return;
                 }
-                _this2.right = data.result;
-                if (!data.result) {
-                    _this2.lose = true;
-                    _this2.rightAnswer = data.answer;
-                }
                 if (data.win) {
                     _this2.win = true;
                 }
+                _this2.right = data.result;
+                _this2.rightAnswer = data.answer;
             });
         },
         emptyAnswer: function emptyAnswer(quizID, turnIndex, id) {
@@ -128,9 +129,9 @@ var quiz = {
         initQuestion: function initQuestion() {
             console.log('ex-----------');
             if (this.lose) {
-                this.tappable = false;
+                this.tappable = 0;
             } else {
-                this.tappable = true;
+                this.tappable = 1;
             }
             this.right = -1;
             this.rightAnswer = -1;
@@ -147,7 +148,7 @@ var quiz = {
             if (!latest) {
                 return;
             }
-            this.tappable = false;
+            this.tappable = 0;
             this.answer(latest);
         }
     }
@@ -168,11 +169,19 @@ var welcome = {
             // 比赛数据
             start: 'stop', // 游戏是否开始
             countdown: 0,
-            gameStartAt: '' // 游戏开始时间
+            gameStartAt: '', // 游戏开始时间
+            // express服务器数据
+            showGameInfo: false,
+            willStartAt: '',
+            beforeStart: '',
+            reward: 0,
+            readyID: null
         };
     },
     mounted: function mounted() {
         var _this3 = this;
+
+        this.getGameInfo();
 
         bus.$on('user-coming', function (d) {
             _this3.logined = d.logined;
@@ -211,12 +220,63 @@ var welcome = {
                 return '';
             }
             return moment.unix(this.gameStartAt).format('YYYY年MM月DD日 HH:mm:ss');
+        },
+        willStart: function willStart() {
+            if (!this.willStartAt) {
+                return '';
+            }
+            return moment.unix(this.willStartAt).format('YYYY年MM月DD日 HH:mm:ss');
+        }
+    },
+    methods: {
+        getGameInfo: function getGameInfo() {
+            var _this4 = this;
+
+            axios.get('/getGame').then(function (d) {
+                var data = d.data;
+                if (data.start != -1) {
+                    _this4.willStartAt = data.start;
+                    _this4.beforeStart = data.beforeStart;
+                    _this4.reward = data.reward;
+                    if (!_this4.gameStartAt) {
+                        _this4.showGameInfo = true;
+                        _this4.readyToGo();
+                    }
+                }
+
+                console.log(d);
+            }).catch(function (e) {
+                alert('express 服务出错');
+            });
+        },
+        readyToGo: function readyToGo() {
+            var _this5 = this;
+
+            this.readyID = setInterval(function (_) {
+                var nowToStart = Number(moment.unix(_this5.willStartAt).diff(moment()) / 1000).toFixed(0);
+                var diff = Number(nowToStart) - 60 * Number(_this5.beforeStart);
+                if (diff < 0) {
+                    clearInterval(_this5.readyID);
+                    location.reload();
+                }
+            }, 15000);
         }
     },
     watch: {
         start: function start(v) {
             if (v == 'playing' && this.countdown == 1) {
-                this.$emit('push-page', quiz);
+                this.$emit('push-page', {
+                    extends: quiz,
+                    onsNavigatorProps: {
+                        reward: this.reward
+                    }
+                });
+            }
+        },
+        gameStartAt: function gameStartAt(v) {
+            if (v) {
+                this.showGameInfo = false;
+                clearTimeout(this.readyID);
             }
         }
     }
@@ -225,12 +285,15 @@ var welcome = {
 var result = {
     key: 'result',
     template: '#result',
-    props: ['win', 'playerAmount', 'remainders'],
-    data: function data() {
-        return {};
-    },
+    props: ['win', 'playerAmount', 'remainders', 'reward'],
     mounted: function mounted() {
         console.log('mountd');
+    },
+
+    computed: {
+        eachReward: function eachReward() {
+            return (Number(this.reward) / Number(this.remainders)).toFixed(0);
+        }
     }
 };
 
@@ -275,63 +338,59 @@ var app = new Vue({
         };
     },
     mounted: function mounted() {
-        var _this4 = this;
+        var _this6 = this;
 
         this.wechatLogin();
 
         // 用户断开连接
         pomelo.on('disconnect', function (reason) {
-            _this4.logined = false;
+            _this6.logined = false;
             console.error(reason);
         });
 
         // 用户数推送
         pomelo.on('playerAmountChange', function (d) {
-            _this4.playerAmount = d.total;
-            _this4.remainders = d.remain;
+            _this6.playerAmount = d.total;
+            _this6.remainders = d.remain;
             console.group('playerAmountChange');
             console.log(d);
             console.groupEnd('playerAmountChange');
         });
         // 游戏进行状态
         pomelo.on('gameState', function (d) {
-            _this4.start = d.state || 'stop';
-            _this4.startAt = d.startAt;
-            if (_this4.start == 'stop' || _this4.start == 'end') {
-                _this4.question = '';
+            _this6.start = d.state || 'stop';
+            _this6.startAt = d.startAt;
+            if (_this6.start == 'stop' || _this6.start == 'end') {
+                _this6.question = '';
             }
             console.group('game-state');
             console.log(d);
             console.groupEnd('game-state');
-
-            if (d.state == 'start') {
-                _this4.$emit('push-page', quiz);
-            }
         });
         // 比赛倒计时推送
         pomelo.on('gameCountdown', function (d) {
-            _this4.countdown = d.time;
+            _this6.countdown = d.time;
             console.group('countdown');
             console.log(d);
             console.groupEnd('countdown');
         });
         // 回合倒计时推送
         pomelo.on('onTurn', function (d) {
-            _this4.turnCountdown = d.time;
+            _this6.turnCountdown = d.time;
         });
         // 题目推送
         pomelo.on('turnQuiz', function (d) {
-            _this4.question = d.question;
-            _this4.options = d.options;
-            _this4.q_id = d.q_id;
-            _this4.totalQuiz = d.total;
-            _this4.order = d.order;
-            _this4.picked = null;
+            _this6.question = d.question;
+            _this6.options = d.options;
+            _this6.q_id = d.q_id;
+            _this6.totalQuiz = d.total;
+            _this6.order = d.order;
+            _this6.picked = null;
             console.group('turnQuiz');
             console.log(d);
             console.groupEnd('turnQuiz');
-            if (!_this4.lose) {
-                _this4.cantEdit = false;
+            if (!_this6.lose) {
+                _this6.cantEdit = false;
             }
         });
     },
@@ -397,7 +456,7 @@ var app = new Vue({
     },
     methods: {
         wechatLogin: function wechatLogin() {
-            var _this5 = this;
+            var _this7 = this;
 
             var param = GetRequest();
 
@@ -412,11 +471,11 @@ var app = new Vue({
                         location.href = '//' + location.host;
                     }
 
-                    _this5.userName = data.nickname;
-                    _this5.headimgurl = data.headimgurl;
-                    _this5.openid = data.openid;
-                    _this5.gender = data.sex;
-                    _this5.dispatchServer();
+                    _this7.userName = data.nickname;
+                    _this7.headimgurl = data.headimgurl;
+                    _this7.openid = data.openid;
+                    _this7.gender = data.sex;
+                    _this7.dispatchServer();
                     console.log(d.data);
                 }).catch(function (e) {
                     alert('出错');
@@ -426,7 +485,7 @@ var app = new Vue({
 
         // 获取服务器
         dispatchServer: function dispatchServer() {
-            var _this6 = this;
+            var _this8 = this;
 
             pomelo.init({
                 host: window.location.hostname,
@@ -434,26 +493,28 @@ var app = new Vue({
                 log: true
             }, function () {
                 pomelo.request('gate.gateHandler.queryEntry', {
-                    uid: _this6.openid
+                    uid: _this8.openid
                 }, function (data) {
                     // 关闭入口
                     console.log(data);
                     pomelo.disconnect();
                     if (data.code == 500) {
                         console.log('login failed');
+
                         if (data.msg) {
-                            _this6.errorMsg = data.msg;
+                            _this8.errorMsg = data.msg;
                         }
+
                         return;
                     }
-                    _this6.enter(data.host, data.port);
+                    _this8.enter(data.host, data.port);
                 });
             });
         },
 
         // 进入游戏
         enter: function enter(host, port) {
-            var _this7 = this;
+            var _this9 = this;
 
             pomelo.init({
                 host: host,
@@ -461,10 +522,10 @@ var app = new Vue({
                 log: true
             }, function () {
                 pomelo.request("connector.entryHandler.enter", {
-                    username: _this7.userName,
-                    openid: _this7.openid,
-                    avatar: _this7.headimgurl,
-                    sex: _this7.gender,
+                    username: _this9.userName,
+                    openid: _this9.openid,
+                    avatar: _this9.headimgurl,
+                    sex: _this9.gender,
                     rid: 'quiz'
                 }, function (data) {
                     console.log(data);
@@ -472,7 +533,7 @@ var app = new Vue({
                         alert(data.err);
                         return;
                     }
-                    _this7.logined = true;
+                    _this9.logined = true;
                 });
             });
         }

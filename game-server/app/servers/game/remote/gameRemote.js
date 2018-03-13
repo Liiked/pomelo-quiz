@@ -28,33 +28,26 @@ gameRemote.prototype.add = function (uid, player, sid, name, flag, cb) {
 	if (!!channel) {
 		channel.add(uid, sid);
 	}
-
-	let resultInRedis = `gameResult:${gameMaster.config.id}`
-	redis.get(resultInRedis).then(d=> {
-		let data = JSON.parse(d);
-		data.player_amount ++;
-		data.remain_players ++;
-		redis.set(resultInRedis,JSON.stringify(data));
+	gameMaster.redis.get(`u_${openid}`).then(d => {
+		let data = d[0]
+		if (!data) {
+			// 初始化用户
+			let user = {
+				name: player.username,
+				openid: player.openid,
+				sex: player.sex,
+				avatar: player.avatar,
+				enter_timestamp: moment().unix(),
+				exit_timestamp: '',
+				exit_in_middle: false, // 中途退出
+				win: false, // 胜利
+				win_timestamp: '', // 胜利时间戳
+				answers: []
+			}
+			gameMaster.redis.set(`u_${openid}`, JSON.stringify(user));
+		}
 	})
-
-	// 参与人数
-	gameMaster.playerAmount ++;
-	gameMaster.remainPlayer ++;
-
-	// 初始化用户
-	let user = {
-		name: player.username,
-		openid: player.openid,
-		sex: player.sex,
-		avatar: player.avatar,
-		enter_timestamp: moment().unix(),
-		exit_timestamp: '',
-		exit_in_middle: false, // 中途退出
-		win: false, // 胜利
-		win_timestamp: '', // 胜利时间戳
-		answers: []
-	}
-	gameMaster.redis.set(`u_${openid}`, JSON.stringify(user));
+	
 
 	// 初始推送 
 	channel.pushMessage({
@@ -72,6 +65,19 @@ gameRemote.prototype.add = function (uid, player, sid, name, flag, cb) {
 
 	// 游戏状态变化
 	gameMaster.stateCallback = (s) => {
+		if ( s == 'playing') {
+			let total = channel.getUserAmount()
+			// 参与人数
+			let resultInRedis = `gameResult:${gameMaster.config.id}`
+			redis.get(resultInRedis).then(d=> {
+				let data = JSON.parse(d);
+				data.player_amount = total;
+				data.remain_players = total;
+				redis.set(resultInRedis,JSON.stringify(data));
+			})
+			gameMaster.playerAmount = total;
+			gameMaster.remainPlayer = total;
+		}
 		channel.pushMessage({
 			route: 'gameState',
 			state: s,
@@ -156,30 +162,31 @@ gameRemote.prototype.kick = function (uid, sid, name, cb) {
 	}
 	var openid = uid.split('*')[0];
 
-	gameMaster.redis.get(`u_${openid}`).then(d => {
-		let data = JSON.parse(d)
-		data.exit_timestamp = moment().unix();
-		data.exit_in_middle = true;
-		gameMaster.redis.set(`u_${openid}`, JSON.stringify(data));
-	})
-
-	// 参与人数
-	// let total = channel.getUserAmount()
-	let resultInRedis = `gameResult:${gameMaster.config.id}`
-	redis.get(resultInRedis).then(d=> {
-		let data = JSON.parse(d);
-		data.remain_players --;
-		redis.set(resultInRedis,JSON.stringify(data));
-	})
 	
-	// 用户数变化 
-	let param = {
-		route: 'playerAmountChange',
-		user: openid,
-		remain: --gameMaster.remainPlayer,
-		total: gameMaster.playerAmount
-	};
-	channel.pushMessage(param);
-
+	if (gameMaster.gameState == 'playing') {
+		gameMaster.redis.get(`u_${openid}`).then(d => {
+			let data = JSON.parse(d)
+			data.exit_timestamp = moment().unix();
+			data.exit_in_middle = true;
+			gameMaster.redis.set(`u_${openid}`, JSON.stringify(data));
+		})
+	
+		// 参与人数
+		// let total = channel.getUserAmount()
+		let resultInRedis = `gameResult:${gameMaster.config.id}`
+		redis.get(resultInRedis).then(d=> {
+			let data = JSON.parse(d);
+			data.remain_players --;
+			redis.set(resultInRedis,JSON.stringify(data));
+			// 用户数变化 
+			let param = {
+				route: 'playerAmountChange',
+				user: openid,
+				remain: data.remain_players,
+				total: gameMaster.playerAmount
+			};
+			channel.pushMessage(param);
+		})
+	}
 	cb();
 };
