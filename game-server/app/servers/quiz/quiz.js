@@ -220,6 +220,7 @@ Game.prototype.gameLoop = function () {
                     "winner_amount": 0,
                     "player_amount": 0,
                     'winners':[],
+                    'reward': config.reward,
                     'remain_players': 0
                 }))
                 this.gameState = GAME_STATE[1]
