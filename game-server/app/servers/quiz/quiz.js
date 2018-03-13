@@ -161,7 +161,7 @@ Game.prototype.turnLoop = function (config, interval) {
 
             gameEnd(this.config.id)
 
-            axios.post('http://quizadmin.prowertech.co/quiz/push', {
+            axios.post('http://quizadmin.prowertech.com/quiz/push', {
                 game_id: this.config.id
             }).then(d => {
                 console.log(d);
