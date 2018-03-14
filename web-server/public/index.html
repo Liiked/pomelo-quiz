@@ -9,7 +9,7 @@
     <link href="https://cdn.bootcss.com/onsen/2.9.2/css/dark-onsen-css-components.min.css" rel="stylesheet">
     <link href="https://cdn.bootcss.com/onsen/2.9.2/css/onsenui.min.css" rel="stylesheet">
     <!-- build:css /css/all.css -->
-    <link href="./css/index.css" rel="stylesheet">
+    <link href="./css/index.1.css" rel="stylesheet">
     <!-- endbuild -->
     <link href="https://cdn.bootcss.com/onsen/2.9.2/css/onsen-css-components.min.css" rel="stylesheet">
     <script src="https://cdn.bootcss.com/vue/2.5.13/vue.js"></script>
@@ -79,8 +79,18 @@
                             本次{{reward}}元奖金，很遗憾没有人获奖
                         </p>
                     </div>
+                    <div class="winner-list" v-if="winnerList && winnerList.length > 0">
+                        <h2>部分获奖者</h2>
+                        <ul class="winners-wrapper">
+                            <li class="win-items" v-for="i in winnerList" :class="{'show-win': i.show}">
+                                <img :src="i.avatar" alt="">
+                                <p>{{i.name}}</p>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
+            <div id="leafContainer"></div>
         </v-ons-page>
     </template>
 
@@ -145,7 +155,7 @@
     <script src="https://cdn.bootcss.com/moment.js/2.21.0/moment.min.js"></script>
     <script src="https://cdn.bootcss.com/axios/0.18.0/axios.min.js"></script>
     <script src="./js/lib/vue-ons.js"></script>
-    <script src="./index.1.js"></script>
+    <script src="./index.2.js"></script>
 </body>
 
 </html>

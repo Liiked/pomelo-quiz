@@ -31,6 +31,7 @@ app.configure('development', function () {
 		dumpExceptions: true,
 		showStack: true
 	}));
+	// 接口-获取用户信息
 	app.get('/getUerInfo/:code', function (req, res) {
 		let param = req.params;
 		axios.get('https://api.weixin.qq.com/sns/oauth2/access_token?appid=' +
@@ -43,12 +44,11 @@ app.configure('development', function () {
 			let [openID, token] = [d.data.openid, d.data.access_token]
 			
 			axios.get(`https://api.weixin.qq.com/sns/userinfo?access_token=${token}&openid=${openID}&lang=zh_CN`).then(d => {
-				console.log(d.data);
 				res.send(d.data);
 			})
 		})
-
 	})
+	// 获取游戏信息
 	app.get('/getGame', function (req, res) {
 		
 		redis.get('game').then(d=> {
@@ -62,7 +62,7 @@ app.configure('development', function () {
 				});
 				return;
 			}
-			console.log(data);
+
 			if (!data.start_time) {
 				res.send({
 					start: -1,
@@ -77,6 +77,7 @@ app.configure('development', function () {
 					start:data.start_time,
 					beforeStart: data.to_start || 5,
 					reward: data.reward,
+					game_id: data.id
 				});
 			} else {
 				res.send({
@@ -84,6 +85,29 @@ app.configure('development', function () {
 					beforeStart: -1
 				});
 			}
+		})
+
+	})
+	// 获取游戏结果
+	app.get('/getResult/:id', function (req, res) {
+		let gameID = req.params.id;
+		
+		redis.get('gameResult:'+ gameID).then(d=> {
+			let data;
+			try {
+				data = JSON.parse(d)
+				let winners = data.winners.slice(0, 15)
+				res.send(
+					winners,
+				);
+			} catch (error) {
+				console.error(error);
+				res.send({
+					msg: '游戏结果请求出错'
+				});
+				return;
+			}
+			
 		})
 
 	})
