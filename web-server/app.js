@@ -52,7 +52,15 @@ app.configure('development', function () {
 	app.get('/getGame', function (req, res) {
 		
 		redis.get('game').then(d=> {
-			let data = JSON.parse(d)
+			try {
+				let data = JSON.parse(d)
+			} catch (error) {
+				res.send({
+					start: -1,
+					beforeStart: -1
+				});
+				return;
+			}
 			console.log(data);
 			if (!data.start_time) {
 				res.send({
