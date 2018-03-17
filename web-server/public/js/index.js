@@ -124,17 +124,19 @@ var result = {
     },
     mounted() {
         if (this.win) {
+            console.log('win is ',this.win);
             init()
         }
 
         bus.$on('win-change', d => {
             this.win = d
+            console.log('win is change ',this.win);
             if (d) {
                 init()
             }
         })
         setTimeout(_ => {
-            this.getGameResult(34123)
+            this.getGameResult(this.game_id)
         }, 100)
     },
     computed: {
@@ -260,13 +262,24 @@ var quiz = {
         },
         // 答题、获取游戏结果
         answer(id) {
+            console.group('my answer');
+            console.log({
+                rid: 'quiz',
+                quiz_id: this.quizID,
+                order_id: this.turnIndex,
+                answer: id
+            });
+            console.groupEnd('my answer');
+            
             pomelo.request("game.gameHandler.send", {
                 rid: 'quiz',
                 quiz_id: this.quizID,
                 order_id: this.turnIndex,
                 answer: id
             }, data => {
+                console.group('ansewer')
                 console.log(data);
+                console.groupEnd('ansewer')
                 if (data.error) {
                     this.$ons.notification.toast('服务器出错了，抱歉', {
                         timeout: 2000,
@@ -276,6 +289,7 @@ var quiz = {
                 if (data.win) {
                     this.win = true
                 }
+                
                 this.right = data.result
                 this.rightAnswer = data.answer
             });
@@ -306,6 +320,7 @@ var quiz = {
     watch: {
         start(v) {
             if (v == 'stop') {
+                console.log('quiz win is ', this.win);
                 this.pushNext()
             }
         },

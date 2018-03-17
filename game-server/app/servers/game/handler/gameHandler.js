@@ -90,5 +90,4 @@ handler.send = function (msg, session, next) {
 
 	})
 
-	console.log(msg);
 };

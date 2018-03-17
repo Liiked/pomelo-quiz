@@ -166,7 +166,7 @@ Game.prototype.turnLoop = function (config, interval) {
             axios.post(adminConfig.adminURL, {
                 game_id: this.config.id
             }).then(d => {
-                console.log(d);
+                console.log(d.data);
             }).catch(e => {
                 console.error(e);
             })
@@ -214,6 +214,11 @@ Game.prototype.gameLoop = function () {
             if (toNow > 0 && toNow <= gameStartCountdown) {
                 console.log('game start');
                 this.config = config;
+                // 清空数据，以便初始化
+                redis.del('game:' + config.id)
+                redis.set(`gameResult:${config.id}`, '')
+
+                // 业务
                 this.redis = new gameRedis('game:' + config.id)
                 redis.set(`gameResult:${config.id}`, JSON.stringify({
                     "id": config.id,
