@@ -2,7 +2,7 @@
 
 var bus = new Vue();
 
-var baseURL = '';
+var baseURL = '/api';
 
 /* Define the number of leaves to be used in the animation */
 var NUMBER_OF_LEAVES = 30;
@@ -624,14 +624,14 @@ var app = new Vue({
             var param = GetRequest();
 
             if (!param.code) {
-                var url = encodeURIComponent('http://' + location.host + '/');
+                var url = encodeURIComponent('http://' + location.host + '/quiz/');
                 location.href = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=' + 'wxc0aa02ca51509241' + '&redirect_uri=' + url + '&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect';
             } else {
                 axios.get(baseURL + '/getUerInfo/' + param.code).then(function (d) {
                     var data = d.data;
 
                     if (data.errcode == 40001) {
-                        location.href = '//' + location.host;
+                        location.href = '//' + location.host + '/quiz/';
                     }
 
                     _this9.userName = data.nickname;

@@ -1,127 +1,61 @@
 var express = require('express');
-var app = express();
-const axios = require('axios');
-const wechatConfig = require('./wechatConfig');
-const moment = require('moment')
-// let user = require('./routes/user');
+var path = require('path');
+var logger = require('morgan');
+var cookieParser = require('cookie-parser');
+var bodyParser = require('body-parser');
+var fs = require('fs')
+var FileStreamRotator = require('file-stream-rotator')
 
-const Redis = require('ioredis');
-let redis = new Redis({
-    port: 6379, // Redis port
-    host: '127.0.0.1', // Redis host
-    family: 4, // 4 (IPv4) or 6 (IPv6)
-    db: 0
+var logDirectory = __dirname + '/logs'
+
+// ensure log directory exists
+fs.existsSync(logDirectory) || fs.mkdirSync(logDirectory)
+
+// create a rotating write stream
+var accessLogStream = FileStreamRotator.getStream({
+  filename: logDirectory + '/access-%DATE%.log',
+  frequency: 'daily',
+  verbose: false
 })
 
-app.configure(function () {
-	app.use(express.methodOverride());
-	app.use(express.bodyParser());
-	// app.use(app.router);
-	app.set('view engine', 'jade');
-	app.set('views', __dirname + '/public');
-	app.set('view options', {
-		layout: false
+let game = require('./routes/game');
+var app = express();
+
+
+// uncomment after placing your favicon in /public
+//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
+app.use(logger('common', {
+	stream: accessLogStream,
+	skip: function (req, res) { return res.statusCode < 400 }
+}));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({
+	extended: true
+}));
+app.use(cookieParser());
+// app.use(express.static(path.join(__dirname, 'public')));
+
+app.use('/api', game);
+
+// catch 404 and forward to error handler
+app.use(function (req, res, next) {
+	var err = new Error('Not Found');
+	err.status = 404;
+	next(err);
+});
+
+// error handler
+app.use(function (err, req, res, next) {
+	// set locals, only providing error in development
+	res.locals.message = err.message;
+	res.locals.error = req.app.get('env') === 'development' ? err : {};
+
+	// render the error page
+	res.status(err.status || 500);
+	res.json({
+		message:err.message,
+		error: err
 	});
-	app.set('basepath', __dirname + '/public');
 });
 
-app.configure('development', function () {
-	app.use(express.static(__dirname + '/public'));
-	app.use(express.errorHandler({
-		dumpExceptions: true,
-		showStack: true
-	}));
-	// 接口-获取用户信息
-	app.get('/getUerInfo/:code', function (req, res) {
-		let param = req.params;
-		axios.get('https://api.weixin.qq.com/sns/oauth2/access_token?appid=' +
-			wechatConfig.appID +
-			'&secret=' +
-			wechatConfig.secret +
-			'&code=' +
-			param.code +
-			'&grant_type=authorization_code').then(d => {
-			let [openID, token] = [d.data.openid, d.data.access_token]
-			
-			axios.get(`https://api.weixin.qq.com/sns/userinfo?access_token=${token}&openid=${openID}&lang=zh_CN`).then(d => {
-				res.send(d.data);
-			})
-		})
-	})
-	// 获取游戏信息
-	app.get('/getGame', function (req, res) {
-		
-		redis.get('game').then(d=> {
-			let data;
-			try {
-				data = JSON.parse(d)
-			} catch (error) {
-				res.send({
-					start: -1,
-					beforeStart: -1
-				});
-				return;
-			}
-
-			if (!data.start_time) {
-				res.send({
-					start: -1,
-					beforeStart: -1
-				});
-				return;
-			}
-
-			let diff = Number(moment.unix(data.start_time).diff(moment()) / 1000).toFixed(0);
-			if (diff > 0) {
-				res.send({
-					start:data.start_time,
-					beforeStart: data.to_start || 5,
-					reward: data.reward,
-					game_id: data.id
-				});
-			} else {
-				res.send({
-					start: -1,
-					beforeStart: -1
-				});
-			}
-		})
-
-	})
-	// 获取游戏结果
-	app.get('/getResult/:id', function (req, res) {
-		let gameID = req.params.id;
-		
-		redis.get('gameResult:'+ gameID).then(d=> {
-			let data;
-			try {
-				data = JSON.parse(d)
-				let winners = data.winners.slice(0, 15)
-				res.send(
-					winners,
-				);
-			} catch (error) {
-				console.error(error);
-				res.send({
-					msg: '游戏结果请求出错'
-				});
-				return;
-			}
-			
-		})
-
-	})
-});
-
-app.configure('production', function () {
-	var oneYear = 31557600000;
-	app.use(express.static(__dirname + '/public', {
-		maxAge: oneYear
-	}));
-	app.use(express.errorHandler());
-});
-
-
-
-console.log("Web server has started.\nPlease log on http://127.0.0.1:3001/index.html");
-app.listen(80, '0.0.0.0');
+module.exports = app;

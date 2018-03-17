@@ -29,4 +29,6 @@ npm install pm2 -g
 ```bash
 pomelo list
 查看pomelo日志-> /logs 目录
+
+pm2 ls
 ```

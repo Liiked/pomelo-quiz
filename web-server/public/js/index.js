@@ -1,6 +1,6 @@
 var bus = new Vue();
 
-var baseURL = '';
+var baseURL = '/api';
 
 /* Define the number of leaves to be used in the animation */
 var NUMBER_OF_LEAVES = 30;
@@ -608,7 +608,7 @@ var app = new Vue({
             let param = GetRequest();
 
             if (!param.code) {
-                let url = encodeURIComponent('http://' + location.host + '/')
+                let url = encodeURIComponent('http://' + location.host + '/quiz/')
                 location.href = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=' +
                     'wxc0aa02ca51509241' +
                     '&redirect_uri=' +
@@ -619,7 +619,7 @@ var app = new Vue({
                     let data = d.data;
 
                     if (data.errcode == 40001) {
-                        location.href = '//' + location.host
+                        location.href = '//' + location.host + '/quiz/'
                     }
 
                     this.userName = data.nickname

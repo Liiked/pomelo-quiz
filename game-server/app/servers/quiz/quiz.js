@@ -205,7 +205,6 @@ Game.prototype.gameLoop = function () {
                 console.log('没有数据');
                 return;
             }
-            console.log('looping');
             // 游戏配置
             let config = JSON.parse(d);
             let gameStartCountdown = config.to_start ? Number(config.to_start) * 60 : 300;
