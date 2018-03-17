@@ -2,7 +2,7 @@
 
 var bus = new Vue();
 
-var baseURL = '';
+var baseURL = '/api';
 
 /* Define the number of leaves to be used in the animation */
 var NUMBER_OF_LEAVES = 30;
@@ -122,17 +122,19 @@ var result = {
         var _this = this;
 
         if (this.win) {
+            console.log('win is ', this.win);
             init();
         }
 
         bus.$on('win-change', function (d) {
             _this.win = d;
+            console.log('win is change ', _this.win);
             if (d) {
                 init();
             }
         });
         setTimeout(function (_) {
-            _this.getGameResult(34123);
+            _this.getGameResult(_this.game_id);
         }, 100);
     },
 
@@ -268,13 +270,24 @@ var quiz = {
         answer: function answer(id) {
             var _this4 = this;
 
+            console.group('my answer');
+            console.log({
+                rid: 'quiz',
+                quiz_id: this.quizID,
+                order_id: this.turnIndex,
+                answer: id
+            });
+            console.groupEnd('my answer');
+
             pomelo.request("game.gameHandler.send", {
                 rid: 'quiz',
                 quiz_id: this.quizID,
                 order_id: this.turnIndex,
                 answer: id
             }, function (data) {
+                console.group('ansewer');
                 console.log(data);
+                console.groupEnd('ansewer');
                 if (data.error) {
                     _this4.$ons.notification.toast('服务器出错了，抱歉', {
                         timeout: 2000
@@ -284,6 +297,7 @@ var quiz = {
                 if (data.win) {
                     _this4.win = true;
                 }
+
                 _this4.right = data.result;
                 _this4.rightAnswer = data.answer;
             });
@@ -313,6 +327,7 @@ var quiz = {
     watch: {
         start: function start(v) {
             if (v == 'stop') {
+                console.log('quiz win is ', this.win);
                 this.pushNext();
             }
         },
@@ -624,14 +639,14 @@ var app = new Vue({
             var param = GetRequest();
 
             if (!param.code) {
-                var url = encodeURIComponent('http://' + location.host + '/');
+                var url = encodeURIComponent('http://' + location.host + '/quiz/');
                 location.href = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=' + 'wxc0aa02ca51509241' + '&redirect_uri=' + url + '&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect';
             } else {
                 axios.get(baseURL + '/getUerInfo/' + param.code).then(function (d) {
                     var data = d.data;
 
                     if (data.errcode == 40001) {
-                        location.href = '//' + location.host;
+                        location.href = '//' + location.host + '/quiz/';
                     }
 
                     _this9.userName = data.nickname;
