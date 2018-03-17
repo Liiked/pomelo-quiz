@@ -12,3 +12,5 @@ web-server/node_modules/*
 *.swp
 *.sublime-project
 *.sublime-workspace
+wechatConfig.js
+redisConfig.js
