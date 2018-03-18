@@ -14,7 +14,7 @@
            "connector":[
              {"id":"connector-server-1", "host":"106.15.40.45", "port":4050, "clientPort": 3050, "frontend": true}
          ],
-        "chat":[
+        "game":[
              {"id":"game-server-1", "host":"106.15.40.45", "port":6050}
         ],
         "gate":[

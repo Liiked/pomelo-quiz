@@ -35,6 +35,7 @@ router.get('/getGame', function (req, res) {
                 start: -1,
                 beforeStart: -1
             });
+            return;
         }
         try {
             data = JSON.parse(d)
