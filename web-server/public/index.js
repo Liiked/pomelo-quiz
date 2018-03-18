@@ -637,10 +637,21 @@ var app = new Vue({
             var _this9 = this;
 
             var param = GetRequest();
-
             if (!param.code) {
-                var url = encodeURIComponent('http://' + location.host + '/quiz/');
-                location.href = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=' + 'wxc0aa02ca51509241' + '&redirect_uri=' + url + '&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect';
+                axios.get(baseURL + '/getAppid').then(function (d) {
+                    var data = d.data;
+                    console.warn(data);
+                    if (data.msg) {
+                        alert(data.msg);
+                        return;
+                    } else {
+                        var url = encodeURIComponent('http://' + location.host + '/quiz/');
+                        location.href = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=' + data.appID + '&redirect_uri=' + url + '&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect';
+                    }
+                }).catch(function (e) {
+                    alert(JSON.stringify(e));
+                    console.error(e);
+                });
             } else {
                 axios.get(baseURL + '/getUerInfo/' + param.code).then(function (d) {
                     var data = d.data;

@@ -8,6 +8,18 @@ const redisConfig = require('../../shared/redisConfig')
 const Redis = require('ioredis');
 let redis = new Redis(redisConfig)
 
+router.get('/getAppid', (req, res) => {
+    if (!wechatConfig.appID) {
+        res.send({
+            msg: 'appid未配置'
+        })
+        return
+    }
+    res.send({
+        appID: wechatConfig.appID
+    })
+})
+
 // 接口-获取用户信息
 router.get('/getUerInfo/:code', function (req, res) {
     let param = req.params;
