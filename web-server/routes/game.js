@@ -30,6 +30,12 @@ router.get('/getGame', function (req, res) {
 
     redis.get('game').then(d => {
         let data;
+        if (!d || d.length < 1) {
+            res.send({
+                start: -1,
+                beforeStart: -1
+            });
+        }
         try {
             data = JSON.parse(d)
         } catch (error) {
