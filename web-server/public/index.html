@@ -9,7 +9,7 @@
     <link href="https://cdn.bootcss.com/onsen/2.9.2/css/dark-onsen-css-components.min.css" rel="stylesheet">
     <link href="https://cdn.bootcss.com/onsen/2.9.2/css/onsenui.min.css" rel="stylesheet">
     <!-- build:css /css/all.css -->
-    <link href="./css/index.2.css" rel="stylesheet">
+    <link href="./css/index.3.css" rel="stylesheet">
     <!-- endbuild -->
     <link href="https://cdn.bootcss.com/onsen/2.9.2/css/onsen-css-components.min.css" rel="stylesheet">
     <script src="https://cdn.bootcss.com/vue/2.5.13/vue.js"></script>
@@ -37,23 +37,30 @@
         <v-ons-page>
             <div class="welcome-wrapper">
                 <div class="game-discription">
-                    <h2 class="game-status">{{gameState}}</h2>
+                    <!-- 圆圈 -->
+                    <div class="game-circle-state">
+                        <h2>答题</h2>
+                        <h3>尚未开始</h3>
+                        <h3>&nbsp;</h3>
+                    </div>
+                    <img class="start-pic" src="img/ready-min.png" alt="">
+                    <!-- 描述 -->
                     <div class="game-start">
-                        <div v-if="showGameInfo" class="hide">
-                            <p style="font-size: 1.2rem;">游戏将于{{willStart}}开始</p>
+                        <div v-if="showGameInfo">
+                            <p style="font-size: 0.9rem;">将于{{willStart}}开始</p>
                             <p style="font-size: 1.2rem;">即将开始的游戏奖金总额为
                                 <span style="font-weight:bold;">{{reward}}</span>元</p>
                         </div>
                         <p style="font-size: 1.2rem;" v-if="loginError">{{loginError}}</p>
-                        <!-- <p style="font-size: 1.2rem;" v-if="!logined">您还未进入游戏</p> -->
                         <div v-if="logined">
                             <p style="font-size: 0.9rem;" v-if="start == 'start'">游戏将于{{startAt}}开始</p>
                             <p style="font-size: 1.2rem;" v-if="start == 'playing'">游戏正在进行中，请耐心等待下一轮</p>
-                            <p style="font-size: 1.2rem;" v-if="start == 'start'">距离游戏开始还有
-                                <span>{{countdown}}</span>秒
+                            <p style="font-size: 1.2rem;" v-if="start == 'start'">距离游戏开始还有</p>
+                            <p>
+                                <span class="count-second">{{countdown}}</span>秒
                             </p>
-                            <p style="font-size: 1.2rem;" v-if="start == 'start'">即将开始的游戏奖金为
-                                <span style="font-weight:bold;">{{reward}}</span>元</p>
+                            <!-- <p style="font-size: 1.2rem;" v-if="start == 'start'">即将开始的游戏奖金为
+                                <span style="font-weight:bold;">{{reward}}</span>元</p> -->
                         </div>
                     </div>
                 </div>
@@ -64,23 +71,37 @@
     <!-- 结果页面 -->
     <template id="result">
         <v-ons-page>
-            <div class="result-wrapper">
+            <div class="result-wrapper" :class="{'result-success-background': win}">
                 <div class="result-discription">
-                    <h2 class="result-status" v-if="win">恭喜您冲顶成功！</h2>
-                    <h2 class="result-status" v-else>失败乃成功之母，祝您下次旗开得胜！</h2>
+                    <div v-if="win">
+                        <div class="result-circle-state result-lose" >
+                            <h3 style="font-size:2rem;">祝贺你冲顶</h3>
+                            <h2>成功</h2>
+                            <h3>&nbsp;</h3>
+                        </div>
+                        <img src="img/success-min.png" alt="" class="success-pic">
+                    </div>
+                    <div v-else>
+                        <div class="result-circle-state result-lose">
+                            <h2>很遗憾</h2>
+                            <h3>您未能冲顶成功</h3>
+                            <h3>祝您下次好运!</h3>
+                        </div>
+                        <img src="img/fail-min.png" alt="" class="over-pic">
+                    </div>
                     <div class="result-start">
-                        <p style="font-size:1.2rem">共有
-                            <span>{{playerAmount}}</span>名玩家参与游戏，
-                            <span>{{remainders}}</span>人冲顶成功</p>
-                        <p style="font-size:1.2rem" v-if="remainders > 0">
+                        <p>共有
+                            <span>{{playerAmount}}</span>人参加游戏，
+                            <span>{{remainders}}</span>人冲顶成功。</p>
+                        <p v-if="remainders > 0">
                             共同瓜分{{reward}}元奖金，每人{{eachReward}}元
                         </p>
-                        <p style="font-size:1.2rem" v-else>
+                        <p v-else>
                             本次{{reward}}元奖金，很遗憾没有人获奖
                         </p>
                     </div>
                     <div class="winner-list" v-if="winnerList && winnerList.length > 0">
-                        <h2>部分获奖者</h2>
+                        <h3 style="color:white;">部分获奖者</h3>
                         <ul class="winners-wrapper">
                             <li class="win-items" v-for="i in winnerList" :class="{'show-win': i.show}">
                                 <img :src="i.avatar" alt="">
@@ -155,7 +176,7 @@
     <script src="https://cdn.bootcss.com/moment.js/2.21.0/moment.min.js"></script>
     <script src="https://cdn.bootcss.com/axios/0.18.0/axios.min.js"></script>
     <script src="./js/lib/vue-ons.js"></script>
-    <script src="./index.4.js"></script>
+    <script src="./index.5.js"></script>
 </body>
 
 </html>

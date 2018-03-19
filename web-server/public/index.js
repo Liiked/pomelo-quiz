@@ -522,7 +522,11 @@ var app = new Vue({
 
         // 用户断开连接
         pomelo.on('disconnect', function (reason) {
+            if (_this8.start != 'stop') {
+                alert('当前网络不稳，您已断线');
+            }
             _this8.logined = false;
+            // location.reload();
             console.error(reason);
         });
 
@@ -708,7 +712,9 @@ var app = new Vue({
             pomelo.init({
                 host: host,
                 port: port,
-                log: true
+                log: true,
+                reconnect: true,
+                maxReconnectAttempts: 10
             }, function () {
                 pomelo.request("connector.entryHandler.enter", {
                     username: _this11.userName,
