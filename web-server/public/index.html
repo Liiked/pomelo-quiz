@@ -48,10 +48,10 @@
                     <div class="game-start">
                         <div v-if="showGameInfo">
                             <p style="font-size: 0.9rem;">将于{{willStart}}开始</p>
-                            <p style="font-size: 1.2rem;">即将开始的奖金奖金总额为
+                            <p style="font-size: 1.2rem;">奖金总额为
                                 <span style="font-weight:bold;">{{reward}}</span>元</p>
                         </div>
-                        <p style="font-size: 1.2rem;" v-if="loginError">{{loginError}}</p>
+                        <!-- <p style="font-size: 1.2rem;" v-if="loginError">{{loginError}}</p> -->
                         <div v-if="logined">
                             <p style="font-size: 0.9rem;" v-if="start == 'start'">答题将于{{startAt}}开始</p>
                             <p style="font-size: 1.2rem;" v-if="start == 'playing'">答题正在进行中，请耐心等待下一轮</p>
