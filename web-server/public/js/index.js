@@ -66,7 +66,7 @@ function createALeaf() {
     var image = document.createElement('img');
 
     /* Randomly choose a leaf image and assign it to the newly created element */
-    image.src = 'img/realLeaf' + randomInteger(1, 5) + '.png';
+    image.src = 'img/flower_' + randomInteger(1, 5) + '.jpg';
 
     leafDiv.style.top = "-100px";
 
@@ -116,21 +116,22 @@ function getColorByRandom(colorList) {
 var result = {
     key: 'result',
     template: '#result',
-    props: ['win', 'playerAmount', 'remainders', 'reward', 'game_id'],
+    props: ['win', 'playerAmount', 'reward', 'game_id'],
     data() {
         return {
             winnerList: null,
+            remainders: 0
         }
     },
     mounted() {
         if (this.win) {
-            console.log('win is ',this.win);
+            console.log('win is ', this.win);
             init()
         }
 
         bus.$on('win-change', d => {
             this.win = d
-            console.log('win is change ',this.win);
+            console.log('win is change ', this.win);
             if (d) {
                 init()
             }
@@ -155,6 +156,7 @@ var result = {
                     alert(d.msg)
                     return
                 }
+                this.remainders = d.data.length;
                 d.data.forEach(d => d['show'] = false)
                 this.winnerList = d.data;
                 this.winnerList.forEach((d, i) => {
@@ -162,10 +164,13 @@ var result = {
                 })
             }).catch(e => {
                 console.error(e);
+                this.$ons.notification.toast('网络不佳，请联系管理员获取结果',{
+                    timeout: 2000
+                })
             })
         },
-        showItem (data, id) {
-            setTimeout(_=>{
+        showItem(data, id) {
+            setTimeout(_ => {
                 data.show = true
             }, id * 200)
         }
@@ -180,7 +185,6 @@ var quiz = {
         return {
             // 题目
             quizTitle: '巴拉巴拉哈哈哈哈航啊', //题目标题
-            quizMsg: '',
             quizID: 0, // 题目id
             options: [], // 选项
             turnIndex: 0, // 当前回合数
@@ -200,7 +204,6 @@ var quiz = {
             rightAnswer: -1,
             gameOver: false,
             lose: false,
-            kickoutMsg: '您已答错过题目，不可以继续作答了哦',
             win: false
         }
     },
@@ -254,11 +257,12 @@ var quiz = {
                 }
             });
         },
-        pickChange(e) {
+        pickChange(item) {
             if (!this.tappable) {
-                e.preventDefault();
                 return;
             }
+            this.picked = item.key;
+            console.log(item);
         },
         // 答题、获取游戏结果
         answer(id) {
@@ -270,7 +274,7 @@ var quiz = {
                 answer: id
             });
             console.groupEnd('my answer');
-            
+
             pomelo.request("game.gameHandler.send", {
                 rid: 'quiz',
                 quiz_id: this.quizID,
@@ -289,7 +293,7 @@ var quiz = {
                 if (data.win) {
                     this.win = true
                 }
-                
+
                 this.right = data.result
                 this.rightAnswer = data.answer
             });
@@ -412,7 +416,9 @@ var welcome = {
     },
     methods: {
         getGameInfo() {
-            axios.get(baseURL + '/getGame').then(d => {
+            axios.get(baseURL + '/getGame', {
+                timeout: 10000
+            }).then(d => {
                 var data = d.data;
                 if (data.start != -1) {
                     this.willStartAt = data.start
@@ -427,7 +433,12 @@ var welcome = {
 
                 console.log(d);
             }).catch(e => {
-                alert('express 服务出错')
+                console.error(e);
+                if (e.message && e.message.indexOf('timeout') != -1) {
+                    alert('当前网络不佳，请刷新页面后重试')
+                } else {
+                    alert('express 服务出错')
+                }
             })
         },
         readyToGo() {
@@ -510,10 +521,11 @@ var app = new Vue({
         // 用户断开连接
         pomelo.on('disconnect', reason => {
             if (this.start != 'stop') {
-                alert('当前网络不稳，您已断线')
+                this.$ons.notification.toast('当前网络不佳，正在重新连接', {
+                    timeout: 1000
+                })
             }
             this.logined = false
-            // location.reload();
             console.error(reason);
         });
 
@@ -659,7 +671,8 @@ var app = new Vue({
                     this.dispatchServer()
                     console.log(d.data);
                 }).catch(e => {
-                    alert('出错')
+                    console.error(e);
+                    alert('无法获取用户信息')
                 })
             }
         },
@@ -698,7 +711,7 @@ var app = new Vue({
                 port: port,
                 log: true,
                 reconnect: true,
-  		        maxReconnectAttempts: 10
+                maxReconnectAttempts: 10
             }, () => {
                 pomelo.request("connector.entryHandler.enter", {
                     username: this.userName,

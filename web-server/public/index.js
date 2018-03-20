@@ -63,7 +63,7 @@ function createALeaf() {
     var image = document.createElement('img');
 
     /* Randomly choose a leaf image and assign it to the newly created element */
-    image.src = 'img/realLeaf' + randomInteger(1, 5) + '.png';
+    image.src = 'img/flower_' + randomInteger(1, 5) + '.jpg';
 
     leafDiv.style.top = "-100px";
 
@@ -112,10 +112,11 @@ function getColorByRandom(colorList) {
 var result = {
     key: 'result',
     template: '#result',
-    props: ['win', 'playerAmount', 'remainders', 'reward', 'game_id'],
+    props: ['win', 'playerAmount', 'reward', 'game_id'],
     data: function data() {
         return {
-            winnerList: null
+            winnerList: null,
+            remainders: 0
         };
     },
     mounted: function mounted() {
@@ -156,6 +157,7 @@ var result = {
                     alert(d.msg);
                     return;
                 }
+                _this2.remainders = d.data.length;
                 d.data.forEach(function (d) {
                     return d['show'] = false;
                 });
@@ -165,6 +167,9 @@ var result = {
                 });
             }).catch(function (e) {
                 console.error(e);
+                _this2.$ons.notification.toast('网络不佳，请联系管理员获取结果', {
+                    timeout: 2000
+                });
             });
         },
         showItem: function showItem(data, id) {
@@ -183,7 +188,6 @@ var quiz = {
         return {
             // 题目
             quizTitle: '巴拉巴拉哈哈哈哈航啊', //题目标题
-            quizMsg: '',
             quizID: 0, // 题目id
             options: [], // 选项
             turnIndex: 0, // 当前回合数
@@ -203,7 +207,6 @@ var quiz = {
             rightAnswer: -1,
             gameOver: false,
             lose: false,
-            kickoutMsg: '您已答错过题目，不可以继续作答了哦',
             win: false
         };
     },
@@ -259,11 +262,12 @@ var quiz = {
                 }
             });
         },
-        pickChange: function pickChange(e) {
+        pickChange: function pickChange(item) {
             if (!this.tappable) {
-                e.preventDefault();
                 return;
             }
+            this.picked = item.key;
+            console.log(item);
         },
 
         // 答题、获取游戏结果
@@ -423,7 +427,9 @@ var welcome = {
         getGameInfo: function getGameInfo() {
             var _this6 = this;
 
-            axios.get(baseURL + '/getGame').then(function (d) {
+            axios.get(baseURL + '/getGame', {
+                timeout: 10000
+            }).then(function (d) {
                 var data = d.data;
                 if (data.start != -1) {
                     _this6.willStartAt = data.start;
@@ -438,7 +444,12 @@ var welcome = {
 
                 console.log(d);
             }).catch(function (e) {
-                alert('express 服务出错');
+                console.error(e);
+                if (e.message && e.message.indexOf('timeout') != -1) {
+                    alert('当前网络不佳，请刷新页面后重试');
+                } else {
+                    alert('express 服务出错');
+                }
             });
         },
         readyToGo: function readyToGo() {
@@ -523,10 +534,11 @@ var app = new Vue({
         // 用户断开连接
         pomelo.on('disconnect', function (reason) {
             if (_this8.start != 'stop') {
-                alert('当前网络不稳，您已断线');
+                _this8.$ons.notification.toast('当前网络不佳，正在重新连接', {
+                    timeout: 1000
+                });
             }
             _this8.logined = false;
-            // location.reload();
             console.error(reason);
         });
 
@@ -671,7 +683,8 @@ var app = new Vue({
                     _this9.dispatchServer();
                     console.log(d.data);
                 }).catch(function (e) {
-                    alert('出错');
+                    console.error(e);
+                    alert('无法获取用户信息');
                 });
             }
         },
