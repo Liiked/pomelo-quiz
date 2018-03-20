@@ -72,15 +72,27 @@ html {
     width: 100%;
     height: 100%;
     font-size: 1rem;
-    background: white; // background: linear-gradient(to bottom right, #5bd4d7, #25a1fc);
+    background: linear-gradient(to bottom right, #5bd4d7, #25a1fc);
     .game-header {
-        padding: 10px 20px;
+        padding: 10px;
         display: flex;
         height: 50px;
         align-items: center;
         justify-content: space-between;
-        background-color: #2196F3;
         color: white;
+        padding-top: 30px;
+        font-size: .9rem;
+        .turn-display {
+            background-color: white;
+            color: black;
+            padding: 5px 10px;
+            border-radius: 10px;
+        }
+        .amount-display {
+            border: 1px solid white;
+            padding: 5px 16px;
+            border-radius: 10px;
+        }
         .text-lg {
             font-size: 1.5rem;
         }
@@ -140,6 +152,86 @@ html {
                     background-color: $red;
                 }
             }
+        }
+    }
+    .game-block-wrapper {
+        margin-top: 5vw;
+        .game-main-block {
+            margin-right: 5%;
+            margin-left: 5%;
+            background-color: #edf9fc;
+            padding: 10px;
+            border-radius: 10px;
+            .turn-wrapper {
+                width: 100%;
+                height: 20vw;
+                position: relative;
+                top: -12vw;
+                display: flex;
+                justify-content: center;
+                .current-turn {
+                    width: 20vw;
+                    height: 20vw;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    background: linear-gradient(to bottom right, #5bd4d7, #25a1fc);
+                    border-radius: 50%;
+                    border: 5px solid #edf9fc;
+                    h2 {
+                        font-size: 2rem;
+                        color: white;
+                        margin: 0;
+                    }
+                }
+            }
+            .question-head {
+                margin-top: -10vw;
+                min-height: 20vw;
+                h4{
+                    font-size: 1.2rem;
+                    font-weight: normal;
+                }
+                p {
+                    margin: 0px;
+                    font-size: .9rem;
+                }
+                .help-text {
+                    .kickout-msg{
+                        color:#ff5722;
+                    }
+                    .right-msg{
+                        color: $green;
+                    }
+                }
+            }
+            .options-body{
+                .options-ul{
+                    margin: 0;
+                    list-style: none;
+                    padding: 0;
+                }
+                .option-item{
+                    padding: 5px 10px;
+                    border: 1px solid #81d6eb;
+                    margin: 10px 0;
+                    border-radius: 5px;
+                }
+                .success-item{
+                    background-color: #81d6eb;
+                }
+                .wrong-item{
+                    border-color: #ff5722;
+                    background-color: #ff5722;
+                }
+            }
+        }
+        .turn-countdown{
+            font-size: .9rem;
+            color:white;
+            margin:0;
+            margin-left:5%;
+            margin-top:10px;
         }
     }
 }
