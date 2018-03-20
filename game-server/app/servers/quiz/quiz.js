@@ -153,24 +153,7 @@ Game.prototype.turnLoop = function (config, interval) {
 
     this.timeOut(interval, quizLength, (i) => {
         if (index >= quizLength) {
-            // 游戏结束
-            this.gameState = GAME_STATE[3]
-            // let winners = this.winers.length;
-            // let total = this.playerAmount;
-            // let winLen = this.remainPlayer;
-            // console.log('game end-------------');
-            // console.log('winner is', this.config.id, total, winners);
-
-            gameEnd(this.config.id)
-
-            axios.post(adminConfig.adminURL, {
-                game_id: this.config.id
-            }).then(d => {
-                console.log(d.data);
-            }).catch(e => {
-                console.error(e);
-            })
-            this.gameLoop()
+            this.endGame()
             return
         }
         this.gameState = GAME_STATE[2]
@@ -225,7 +208,7 @@ Game.prototype.gameLoop = function () {
                     "endTimestamp": '',
                     "winner_amount": 0,
                     "player_amount": 0,
-                    'winners':[],
+                    'winners': [],
                     'reward': config.reward,
                     'remain_players': 0
                 }))
@@ -243,6 +226,27 @@ Game.prototype.gameLoop = function () {
 
         })
     })
+}
+
+Game.prototype.endGame = function () {
+    // 游戏结束
+    this.gameState = GAME_STATE[3]
+    // let winners = this.winers.length;
+    // let total = this.playerAmount;
+    // let winLen = this.remainPlayer;
+    // console.log('game end-------------');
+    // console.log('winner is', this.config.id, total, winners);
+
+    gameEnd(this.config.id)
+
+    axios.post(adminConfig.adminURL, {
+        game_id: this.config.id
+    }).then(d => {
+        console.log(d.data);
+    }).catch(e => {
+        console.error(e);
+    })
+    this.gameLoop()
 }
 
 // hm redis封装
