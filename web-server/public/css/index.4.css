@@ -235,9 +235,9 @@ html {
 }
 
 .game-wrapper .game-block-wrapper .game-main-block .options-body .option-item {
-  padding: 5px 10px;
+  padding: 5px 15px;
   border: 1px solid #81d6eb;
-  margin: 10px 0;
+  margin: 15px 0;
   border-radius: 5px;
 }
 
