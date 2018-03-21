@@ -55,7 +55,7 @@
                                 <span style="font-weight:bold;">{{reward}}</span>元</p>
                         </div>
                         <!-- <p style="font-size: 1.2rem;" v-if="loginError">{{loginError}}</p> -->
-                        <div v-if="logined" v-cloak>
+                        <div v-if="!showGameInfo && logined" v-cloak>
                             <p style="font-size: 0.9rem;" v-if="start == 'start'">答题将于{{startAt}}开始</p>
                             <p style="font-size: 1.2rem;" v-if="start == 'playing'">答题正在进行中，请耐心等待下一轮</p>
                             <p style="font-size: 1.2rem;" v-if="start == 'start'">距离答题开始还有</p>
