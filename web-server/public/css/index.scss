@@ -8,7 +8,7 @@ html {
 // 欢迎页面
 .welcome-wrapper {
     width: 100%;
-    height: 100%;
+    min-height: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -19,7 +19,7 @@ html {
         text-align: center;
         flex-direction: column;
         display: flex;
-        margin-top: 20px;
+        margin-top: 60px;
         align-items: center;
         position: relative;
         z-index: 20;
@@ -70,7 +70,8 @@ html {
 // 游戏页面
 .game-wrapper {
     width: 100%;
-    height: 100%;
+    min-height: 100%;
+    overflow: hidden;
     font-size: 1rem;
     background: linear-gradient(to bottom right, #5bd4d7, #25a1fc);
     .game-header {
@@ -212,9 +213,9 @@ html {
                     padding: 0;
                 }
                 .option-item{
-                    padding: 5px 10px;
+                    padding: 5px 15px;
                     border: 1px solid #81d6eb;
-                    margin: 10px 0;
+                    margin: 15px 0;
                     border-radius: 5px;
                 }
                 .success-item{
@@ -239,7 +240,8 @@ html {
 // 结果页面
 .result-wrapper {
     width: 100%;
-    height: 100%;
+    min-height: 100%;
+    overflow: hidden;
     display: flex;
     justify-content: center;
     align-items: center;

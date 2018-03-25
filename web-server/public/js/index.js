@@ -1,6 +1,8 @@
 var bus = new Vue();
 
 var baseURL = '/api';
+var opend_id = '';
+var game_id = null;
 
 /* Define the number of leaves to be used in the animation */
 var NUMBER_OF_LEAVES = 30;
@@ -120,7 +122,14 @@ var result = {
     data() {
         return {
             winnerList: null,
-            remainders: 0
+            remainders: 0,
+            showDialog: false,
+            form: {
+                name: null,
+                phone: null,
+                work_number: null
+            },
+            submited: false
         }
     },
     mounted() {
@@ -164,7 +173,7 @@ var result = {
                 })
             }).catch(e => {
                 console.error(e);
-                this.$ons.notification.toast('网络不佳，请联系管理员获取结果',{
+                this.$ons.notification.toast('网络不佳，请联系管理员获取结果', {
                     timeout: 2000
                 })
             })
@@ -173,6 +182,64 @@ var result = {
             setTimeout(_ => {
                 data.show = true
             }, id * 200)
+        },
+        verifyForm() {
+            let notify = this.$ons.notification.toast;
+            if (!this.form.name) {
+                notify('请填写您的姓名', {
+                    timeout: 1500
+                })
+                return false;
+            }
+            if (this.form.phone.length != 11 || !isPhoneNum(this.form.phone)) {
+                notify('请填写有效的手机号码', {
+                    timeout: 1500
+                })
+                return false;
+            }
+            if (!this.form.work_number) {
+                notify('请填写您的工号', {
+                    timeout: 1500
+                })
+                return false;
+            }
+
+            function isPhoneNum(str) {
+                return /^(0|86|17951)?(13[0-9]|15[012356789]|17[678]|18[0-9]|14[57])[0-9]{8}$/.test(str)
+            }
+
+            return true;
+        },
+        submitForm() {
+            if (!this.verifyForm()) {
+                return
+            }
+            let sendData = JSON.parse(JSON.stringify(this.form));
+            sendData['openid'] = opend_id;
+            sendData['game_id'] = game_id;
+            console.log(sendData);
+            axios.post('http://quizadmin.prowertech.com/quiz/user-info', sendData, {
+                withCredentials: true
+            }).then(d => {
+                let data = d.data;
+
+                if (data.code = -1) {
+                    this.$ons.notification.toast('哎呀，服务器出错了，请联系工作人员', {
+                        timeout: 1500
+                    })
+                    return;
+                }
+
+                this.showDialog = false;
+                this.submited = true;
+            }).catch(e => {
+                console.error(e);
+                this.$ons.notification.toast('哎呀，服务器出错了，请联系工作人员', {
+                    timeout: 1500
+                })
+            })
+
+
         }
     }
 };
@@ -425,6 +492,7 @@ var welcome = {
                     this.beforeStart = data.beforeStart
                     this.reward = data.reward
                     this.game_id = data.game_id
+                    window.game_id = data.game_id
                     if (!this.gameStartAt) {
                         this.showGameInfo = true
                         this.readyToGo()
@@ -667,6 +735,7 @@ var app = new Vue({
                     this.userName = data.nickname
                     this.headimgurl = data.headimgurl
                     this.openid = data.openid
+                    window.opend_id = data.openid;
                     this.gender = data.sex
                     this.dispatchServer()
                     console.log(d.data);

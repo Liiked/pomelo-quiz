@@ -3,6 +3,8 @@
 var bus = new Vue();
 
 var baseURL = '/api';
+var opend_id = '';
+var game_id = null;
 
 /* Define the number of leaves to be used in the animation */
 var NUMBER_OF_LEAVES = 30;
@@ -116,7 +118,14 @@ var result = {
     data: function data() {
         return {
             winnerList: null,
-            remainders: 0
+            remainders: 0,
+            showDialog: false,
+            form: {
+                name: null,
+                phone: null,
+                work_number: null
+            },
+            submited: false
         };
     },
     mounted: function mounted() {
@@ -176,6 +185,65 @@ var result = {
             setTimeout(function (_) {
                 data.show = true;
             }, id * 200);
+        },
+        verifyForm: function verifyForm() {
+            var notify = this.$ons.notification.toast;
+            if (!this.form.name) {
+                notify('请填写您的姓名', {
+                    timeout: 1500
+                });
+                return false;
+            }
+            if (this.form.phone.length != 11 || !isPhoneNum(this.form.phone)) {
+                notify('请填写有效的手机号码', {
+                    timeout: 1500
+                });
+                return false;
+            }
+            if (!this.form.work_number) {
+                notify('请填写您的工号', {
+                    timeout: 1500
+                });
+                return false;
+            }
+
+            function isPhoneNum(str) {
+                return (/^(0|86|17951)?(13[0-9]|15[012356789]|17[678]|18[0-9]|14[57])[0-9]{8}$/.test(str)
+                );
+            }
+
+            return true;
+        },
+        submitForm: function submitForm() {
+            var _this3 = this;
+
+            if (!this.verifyForm()) {
+                return;
+            }
+            var sendData = JSON.parse(JSON.stringify(this.form));
+            sendData['openid'] = opend_id;
+            sendData['game_id'] = game_id;
+            console.log(sendData);
+            axios.post('http://quizadmin.prowertech.com/quiz/user-info', sendData, {
+                withCredentials: true
+            }).then(function (d) {
+                var data = d.data;
+
+                if (data.code = -1) {
+                    _this3.$ons.notification.toast('哎呀，服务器出错了，请联系工作人员', {
+                        timeout: 1500
+                    });
+                    return;
+                }
+
+                _this3.showDialog = false;
+                _this3.submited = true;
+            }).catch(function (e) {
+                console.error(e);
+                _this3.$ons.notification.toast('哎呀，服务器出错了，请联系工作人员', {
+                    timeout: 1500
+                });
+            });
         }
     }
 };
@@ -211,41 +279,41 @@ var quiz = {
         };
     },
     mounted: function mounted() {
-        var _this3 = this;
+        var _this4 = this;
 
         // 收发器
 
         bus.$on('game-state-coming', function (d) {
-            _this3.start = d;
+            _this4.start = d;
         });
 
         bus.$on('remainders', function (d) {
-            _this3.remainders = d.remainders;
-            _this3.playerAmount = d.playerAmount;
+            _this4.remainders = d.remainders;
+            _this4.playerAmount = d.playerAmount;
         });
 
         bus.$on('quiz-coming', function (d) {
-            if (!_this3.right) {
-                _this3.lose = true;
+            if (!_this4.right) {
+                _this4.lose = true;
             }
-            if (_this3.turnIndex > 0 && !_this3.picked && !_this3.lose) {
-                _this3.lose = true;
-                _this3.kickoutMsg = '您已经放弃答题，请在下一轮游戏中再接再厉';
-                _this3.emptyAnswer(_this3.quizID, _this3.turnIndex, 0);
+            if (_this4.turnIndex > 0 && !_this4.picked && !_this4.lose) {
+                _this4.lose = true;
+                _this4.kickoutMsg = '您已经放弃答题，请在下一轮游戏中再接再厉';
+                _this4.emptyAnswer(_this4.quizID, _this4.turnIndex, 0);
             }
-            _this3.initQuestion();
+            _this4.initQuestion();
             console.log(d);
-            _this3.turnIndex = d.turnIndex;
-            _this3.turnTotal = d.turnTotal;
-            _this3.quizTitle = d.quizTitle;
-            _this3.options = d.options;
-            _this3.quizID = d.quizID;
+            _this4.turnIndex = d.turnIndex;
+            _this4.turnTotal = d.turnTotal;
+            _this4.quizTitle = d.quizTitle;
+            _this4.options = d.options;
+            _this4.quizID = d.quizID;
         });
 
         bus.$on('turn-countdown', function (d) {
-            _this3.turnCountdown = d.time;
-            _this3.remainders = d.remainders;
-            _this3.playerAmount = d.playerAmount;
+            _this4.turnCountdown = d.time;
+            _this4.remainders = d.remainders;
+            _this4.playerAmount = d.playerAmount;
         });
     },
 
@@ -272,7 +340,7 @@ var quiz = {
 
         // 答题、获取游戏结果
         answer: function answer(id) {
-            var _this4 = this;
+            var _this5 = this;
 
             console.group('my answer');
             console.log({
@@ -293,17 +361,17 @@ var quiz = {
                 console.log(data);
                 console.groupEnd('ansewer');
                 if (data.error) {
-                    _this4.$ons.notification.toast('服务器出错了，抱歉', {
+                    _this5.$ons.notification.toast('服务器出错了，抱歉', {
                         timeout: 2000
                     });
                     return;
                 }
                 if (data.win) {
-                    _this4.win = true;
+                    _this5.win = true;
                 }
 
-                _this4.right = data.result;
-                _this4.rightAnswer = data.answer;
+                _this5.right = data.result;
+                _this5.rightAnswer = data.answer;
             });
         },
         emptyAnswer: function emptyAnswer(quizID, turnIndex, id) {
@@ -374,29 +442,29 @@ var welcome = {
         };
     },
     mounted: function mounted() {
-        var _this5 = this;
+        var _this6 = this;
 
         this.getGameInfo();
 
         bus.$on('user-coming', function (d) {
-            _this5.logined = d.logined;
-            _this5.userName = d.userName;
-            _this5.openid = d.openid;
-            _this5.gender = d.gender;
-            _this5.headimgurl = d.headimgurl;
+            _this6.logined = d.logined;
+            _this6.userName = d.userName;
+            _this6.openid = d.openid;
+            _this6.gender = d.gender;
+            _this6.headimgurl = d.headimgurl;
         });
 
         bus.$on('error-coming', function (d) {
-            _this5.loginError = d;
+            _this6.loginError = d;
         });
 
         // 倒计时和游戏开始
         bus.$on('countdown-coming', function (d) {
-            _this5.countdown = d.countdown;
-            _this5.gameStartAt = d.startAt;
+            _this6.countdown = d.countdown;
+            _this6.gameStartAt = d.startAt;
         });
         bus.$on('game-state-coming', function (d) {
-            _this5.start = d;
+            _this6.start = d;
         });
     },
 
@@ -425,20 +493,21 @@ var welcome = {
     },
     methods: {
         getGameInfo: function getGameInfo() {
-            var _this6 = this;
+            var _this7 = this;
 
             axios.get(baseURL + '/getGame', {
                 timeout: 10000
             }).then(function (d) {
                 var data = d.data;
                 if (data.start != -1) {
-                    _this6.willStartAt = data.start;
-                    _this6.beforeStart = data.beforeStart;
-                    _this6.reward = data.reward;
-                    _this6.game_id = data.game_id;
-                    if (!_this6.gameStartAt) {
-                        _this6.showGameInfo = true;
-                        _this6.readyToGo();
+                    _this7.willStartAt = data.start;
+                    _this7.beforeStart = data.beforeStart;
+                    _this7.reward = data.reward;
+                    _this7.game_id = data.game_id;
+                    window.game_id = data.game_id;
+                    if (!_this7.gameStartAt) {
+                        _this7.showGameInfo = true;
+                        _this7.readyToGo();
                     }
                 }
 
@@ -453,13 +522,13 @@ var welcome = {
             });
         },
         readyToGo: function readyToGo() {
-            var _this7 = this;
+            var _this8 = this;
 
             this.readyID = setInterval(function (_) {
-                var nowToStart = Number(moment.unix(_this7.willStartAt).diff(moment()) / 1000).toFixed(0);
-                var diff = Number(nowToStart) - 60 * Number(_this7.beforeStart);
+                var nowToStart = Number(moment.unix(_this8.willStartAt).diff(moment()) / 1000).toFixed(0);
+                var diff = Number(nowToStart) - 60 * Number(_this8.beforeStart);
                 if (diff < 0) {
-                    clearInterval(_this7.readyID);
+                    clearInterval(_this8.readyID);
                     location.reload();
                 }
             }, 15000);
@@ -527,35 +596,35 @@ var app = new Vue({
         };
     },
     mounted: function mounted() {
-        var _this8 = this;
+        var _this9 = this;
 
         this.wechatLogin();
 
         // 用户断开连接
         pomelo.on('disconnect', function (reason) {
-            if (_this8.start != 'stop') {
-                _this8.$ons.notification.toast('当前网络不佳，正在重新连接', {
+            if (_this9.start != 'stop') {
+                _this9.$ons.notification.toast('当前网络不佳，正在重新连接', {
                     timeout: 1000
                 });
             }
-            _this8.logined = false;
+            _this9.logined = false;
             console.error(reason);
         });
 
         // 用户数推送
         pomelo.on('playerAmountChange', function (d) {
-            _this8.playerAmount = d.total;
-            _this8.remainders = d.remain;
+            _this9.playerAmount = d.total;
+            _this9.remainders = d.remain;
             console.group('playerAmountChange');
             console.log(d);
             console.groupEnd('playerAmountChange');
         });
         // 游戏进行状态
         pomelo.on('gameState', function (d) {
-            _this8.start = d.state || 'stop';
-            _this8.startAt = d.startAt;
-            if (_this8.start == 'stop' || _this8.start == 'end') {
-                _this8.question = '';
+            _this9.start = d.state || 'stop';
+            _this9.startAt = d.startAt;
+            if (_this9.start == 'stop' || _this9.start == 'end') {
+                _this9.question = '';
             }
             console.group('game-state');
             console.log(d);
@@ -563,28 +632,28 @@ var app = new Vue({
         });
         // 比赛倒计时推送
         pomelo.on('gameCountdown', function (d) {
-            _this8.countdown = d.time;
+            _this9.countdown = d.time;
             console.group('countdown');
             console.log(d);
             console.groupEnd('countdown');
         });
         // 回合倒计时推送
         pomelo.on('onTurn', function (d) {
-            _this8.turnCountdown = d.time;
+            _this9.turnCountdown = d.time;
         });
         // 题目推送
         pomelo.on('turnQuiz', function (d) {
-            _this8.question = d.question;
-            _this8.options = d.options;
-            _this8.q_id = d.q_id;
-            _this8.totalQuiz = d.total;
-            _this8.order = d.order;
-            _this8.picked = null;
+            _this9.question = d.question;
+            _this9.options = d.options;
+            _this9.q_id = d.q_id;
+            _this9.totalQuiz = d.total;
+            _this9.order = d.order;
+            _this9.picked = null;
             console.group('turnQuiz');
             console.log(d);
             console.groupEnd('turnQuiz');
-            if (!_this8.lose) {
-                _this8.cantEdit = false;
+            if (!_this9.lose) {
+                _this9.cantEdit = false;
             }
         });
     },
@@ -650,7 +719,7 @@ var app = new Vue({
     },
     methods: {
         wechatLogin: function wechatLogin() {
-            var _this9 = this;
+            var _this10 = this;
 
             var param = GetRequest();
             if (!param.code) {
@@ -676,11 +745,12 @@ var app = new Vue({
                         location.href = '//' + location.host + '/quiz/';
                     }
 
-                    _this9.userName = data.nickname;
-                    _this9.headimgurl = data.headimgurl;
-                    _this9.openid = data.openid;
-                    _this9.gender = data.sex;
-                    _this9.dispatchServer();
+                    _this10.userName = data.nickname;
+                    _this10.headimgurl = data.headimgurl;
+                    _this10.openid = data.openid;
+                    window.opend_id = data.openid;
+                    _this10.gender = data.sex;
+                    _this10.dispatchServer();
                     console.log(d.data);
                 }).catch(function (e) {
                     console.error(e);
@@ -691,7 +761,7 @@ var app = new Vue({
 
         // 获取服务器
         dispatchServer: function dispatchServer() {
-            var _this10 = this;
+            var _this11 = this;
 
             pomelo.init({
                 host: window.location.hostname,
@@ -699,7 +769,7 @@ var app = new Vue({
                 log: true
             }, function () {
                 pomelo.request('gate.gateHandler.queryEntry', {
-                    uid: _this10.openid
+                    uid: _this11.openid
                 }, function (data) {
                     // 关闭入口
                     console.log(data);
@@ -708,19 +778,19 @@ var app = new Vue({
                         console.log('login failed');
 
                         if (data.msg) {
-                            _this10.errorMsg = data.msg;
+                            _this11.errorMsg = data.msg;
                         }
 
                         return;
                     }
-                    _this10.enter(data.host, data.port);
+                    _this11.enter(data.host, data.port);
                 });
             });
         },
 
         // 进入游戏
         enter: function enter(host, port) {
-            var _this11 = this;
+            var _this12 = this;
 
             pomelo.init({
                 host: host,
@@ -730,10 +800,10 @@ var app = new Vue({
                 maxReconnectAttempts: 10
             }, function () {
                 pomelo.request("connector.entryHandler.enter", {
-                    username: _this11.userName,
-                    openid: _this11.openid,
-                    avatar: _this11.headimgurl,
-                    sex: _this11.gender,
+                    username: _this12.userName,
+                    openid: _this12.openid,
+                    avatar: _this12.headimgurl,
+                    sex: _this12.gender,
                     rid: 'quiz'
                 }, function (data) {
                     console.log(data);
@@ -741,7 +811,7 @@ var app = new Vue({
                         alert(data.err);
                         return;
                     }
-                    _this11.logined = true;
+                    _this12.logined = true;
                 });
             });
         }
