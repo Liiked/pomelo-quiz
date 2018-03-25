@@ -579,6 +579,7 @@ var app = new Vue({
             startAt: '',
 
             errorMsg: '',
+            reconnectCount: 0,
 
             // 玩家状态
             lose: false,
@@ -603,9 +604,16 @@ var app = new Vue({
         // 用户断开连接
         pomelo.on('disconnect', function (reason) {
             if (_this9.start != 'stop') {
+                if (reconnectCount > 30) {
+                    _this9.$ons.notification.toast('您的网络已经断开，无法连接', {
+                        timeout: 2000
+                    });
+                    return;
+                }
                 _this9.$ons.notification.toast('当前网络不佳，正在重新连接', {
                     timeout: 1000
                 });
+                _this9.reconnectCount++;
             }
             _this9.logined = false;
             console.error(reason);
@@ -797,7 +805,7 @@ var app = new Vue({
                 port: port,
                 log: true,
                 reconnect: true,
-                maxReconnectAttempts: 10
+                maxReconnectAttempts: 30
             }, function () {
                 pomelo.request("connector.entryHandler.enter", {
                     username: _this12.userName,
