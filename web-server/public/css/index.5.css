@@ -1,0 +1,503 @@
+@charset "UTF-8";
+body,
+html {
+  font-size: 16px;
+}
+
+.welcome-wrapper {
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 20px;
+  background: linear-gradient(to bottom right, #5bd4d7, #25a1fc);
+}
+
+.welcome-wrapper .game-discription {
+  text-align: center;
+  flex-direction: column;
+  display: flex;
+  margin-top: 60px;
+  align-items: center;
+  position: relative;
+  z-index: 20;
+  width: 100%;
+}
+
+.welcome-wrapper .game-discription .game-circle-state {
+  width: 60vw;
+  height: 60vw;
+  background-color: #81d6eb;
+  border-radius: 50%;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  position: relative;
+  z-index: 20;
+}
+
+.welcome-wrapper .game-discription .start-pic {
+  width: 60%;
+  position: absolute;
+  top: -90px;
+  right: -12px;
+  z-index: 10;
+}
+
+.welcome-wrapper .game-discription h2,
+.welcome-wrapper .game-discription h3 {
+  width: 100%;
+  color: white;
+  font-weight: lighter;
+  margin: 0;
+}
+
+.welcome-wrapper .game-discription h2 {
+  font-size: 3rem;
+}
+
+.welcome-wrapper .game-discription h3 {
+  font-size: 2rem;
+}
+
+.welcome-wrapper .game-discription .game-start {
+  font-size: 1rem;
+  color: white;
+}
+
+.welcome-wrapper .game-discription .game-start .count-second {
+  font-size: 2rem;
+}
+
+.game-wrapper {
+  width: 100%;
+  min-height: 100%;
+  overflow: hidden;
+  font-size: 1rem;
+  background: linear-gradient(to bottom right, #5bd4d7, #25a1fc);
+}
+
+.game-wrapper .game-header {
+  padding: 10px;
+  display: flex;
+  height: 50px;
+  align-items: center;
+  justify-content: space-between;
+  color: white;
+  padding-top: 30px;
+  font-size: .9rem;
+}
+
+.game-wrapper .game-header .turn-display {
+  background-color: white;
+  color: black;
+  padding: 5px 10px;
+  border-radius: 10px;
+}
+
+.game-wrapper .game-header .amount-display {
+  border: 1px solid white;
+  padding: 5px 16px;
+  border-radius: 10px;
+}
+
+.game-wrapper .game-header .text-lg {
+  font-size: 1.5rem;
+}
+
+.game-wrapper .game-body {
+  margin-top: 40px;
+}
+
+.game-wrapper .game-body .quiz-head {
+  padding: 0 20px;
+}
+
+.game-wrapper .game-body .quiz-head h4 {
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+.game-wrapper .game-body .kickout-msg {
+  padding: 0 20px;
+  color: #FF5722;
+}
+
+.game-wrapper .game-body .right-msg {
+  padding: 0 20px;
+  color: #4caf50;
+}
+
+.game-wrapper .game-body .list-item__center {
+  font-size: 1.2rem;
+}
+
+.game-wrapper .game-body .right-answer .list-item__center {
+  color: #4caf50;
+}
+
+.game-wrapper .game-body .right-answer .radio-button__checkmark:after {
+  border-color: #4caf50;
+}
+
+.game-wrapper .game-body .right-answer .radio-button--material__checkmark::before {
+  border-color: #4caf50;
+}
+
+.game-wrapper .game-body .right-answer .radio-button--material__checkmark::after {
+  background-color: #4caf50;
+}
+
+.game-wrapper .game-body .wrong-answer .list-item__center {
+  color: #FF5722;
+}
+
+.game-wrapper .game-body .wrong-answer .radio-button__checkmark::after {
+  border-color: #FF5722;
+}
+
+.game-wrapper .game-body .wrong-answer .radio-button--material__checkmark::before {
+  border-color: #FF5722;
+}
+
+.game-wrapper .game-body .wrong-answer .radio-button--material__checkmark::after {
+  background-color: #FF5722;
+}
+
+.game-wrapper .game-block-wrapper {
+  margin-top: 5vw;
+}
+
+.game-wrapper .game-block-wrapper .game-main-block {
+  margin-right: 5%;
+  margin-left: 5%;
+  background-color: #edf9fc;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.game-wrapper .game-block-wrapper .game-main-block .turn-wrapper {
+  width: 100%;
+  height: 20vw;
+  position: relative;
+  top: -12vw;
+  display: flex;
+  justify-content: center;
+}
+
+.game-wrapper .game-block-wrapper .game-main-block .turn-wrapper .current-turn {
+  width: 20vw;
+  height: 20vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(to bottom right, #5bd4d7, #25a1fc);
+  border-radius: 50%;
+  border: 5px solid #edf9fc;
+}
+
+.game-wrapper .game-block-wrapper .game-main-block .turn-wrapper .current-turn h2 {
+  font-size: 2rem;
+  color: white;
+  margin: 0;
+}
+
+.game-wrapper .game-block-wrapper .game-main-block .question-head {
+  margin-top: -10vw;
+  min-height: 20vw;
+}
+
+.game-wrapper .game-block-wrapper .game-main-block .question-head h4 {
+  font-size: 1.2rem;
+  font-weight: normal;
+}
+
+.game-wrapper .game-block-wrapper .game-main-block .question-head p {
+  margin: 0px;
+  font-size: .9rem;
+}
+
+.game-wrapper .game-block-wrapper .game-main-block .question-head .help-text .kickout-msg {
+  color: #ff5722;
+}
+
+.game-wrapper .game-block-wrapper .game-main-block .question-head .help-text .right-msg {
+  color: #4caf50;
+}
+
+.game-wrapper .game-block-wrapper .game-main-block .options-body .options-ul {
+  margin: 0;
+  list-style: none;
+  padding: 0;
+}
+
+.game-wrapper .game-block-wrapper .game-main-block .options-body .option-item {
+  padding: 5px 15px;
+  border: 1px solid #81d6eb;
+  margin: 15px 0;
+  border-radius: 5px;
+}
+
+.game-wrapper .game-block-wrapper .game-main-block .options-body .success-item {
+  background-color: #81d6eb;
+}
+
+.game-wrapper .game-block-wrapper .game-main-block .options-body .wrong-item {
+  border-color: #ff5722;
+  background-color: #ff5722;
+}
+
+.game-wrapper .game-block-wrapper .turn-countdown {
+  font-size: .9rem;
+  color: white;
+  margin: 0;
+  margin-left: 5%;
+  margin-top: 10px;
+}
+
+.result-wrapper {
+  width: 100%;
+  min-height: 100%;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(to bottom right, #5bd4d7, #25a1fc);
+}
+
+.result-wrapper .result-discription {
+  text-align: center;
+  flex-direction: column;
+  display: flex;
+  margin-top: 80px;
+  align-items: center;
+  position: relative;
+  z-index: 10;
+}
+
+.result-wrapper .result-discription .result-circle-state {
+  width: 60vw;
+  height: 60vw;
+  background-color: #81d6eb;
+  border-radius: 50%;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  position: relative;
+  z-index: 20;
+}
+
+.result-wrapper .result-discription .over-pic {
+  width: 50%;
+  position: absolute;
+  top: -90px;
+  right: -12px;
+  z-index: 10;
+}
+
+.result-wrapper .result-discription .success-pic {
+  width: 50%;
+  position: absolute;
+  top: -90px;
+  right: -12px;
+  z-index: 10;
+}
+
+.result-wrapper .result-discription h2,
+.result-wrapper .result-discription h3 {
+  width: 100%;
+  color: white;
+  font-weight: lighter;
+  margin: 0;
+}
+
+.result-wrapper .result-discription h2 {
+  font-size: 3rem;
+}
+
+.result-wrapper .result-discription h3 {
+  font-size: 1.2rem;
+}
+
+.result-wrapper .result-discription .result-start {
+  font-size: 1rem;
+  color: white;
+}
+
+.result-wrapper .result-discription .result-start .count-second {
+  font-size: 2rem;
+}
+
+.result-success-background {
+  background: linear-gradient(to bottom right, #e7e513, #a1cd35);
+}
+
+.result-success-background .result-discription .result-circle-state {
+  background-color: white;
+}
+
+.result-success-background .result-discription h2,
+.result-success-background .result-discription h3 {
+  color: #80c342;
+}
+
+.result-success-background .result-discription .result-start {
+  color: black;
+}
+
+.badge {
+  margin: 0 5px;
+  padding: 5px 10px;
+  background-color: #2196f3;
+  border-radius: 5px;
+  color: white;
+}
+
+.badge.badge-danger {
+  background-color: #FF5722;
+}
+
+/* 胜者列表 */
+.winner-list {
+  position: relative;
+  z-index: 20;
+}
+
+.winner-list h2 {
+  text-align: center;
+  width: 100%;
+}
+
+.winners-wrapper {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.win-items {
+  padding: 8px;
+  margin: 10px 10px 10px 0;
+  background: #E0E0E0;
+  border-radius: 4px;
+  max-width: 100px;
+  opacity: 0;
+  transition: all 0.5s;
+}
+
+.show-win {
+  opacity: 1;
+}
+
+.win-items img {
+  width: 50px;
+  display: block;
+}
+
+.win-items p {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  margin: 4px 0;
+}
+
+#leafContainer {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 1;
+  top: 0;
+  left: 0;
+}
+
+#leafContainer > div {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  /* We use the following properties to apply the fade and drop animations to each leaf.
+         Each of these properties takes two values. These values respectively match a setting
+         for fade and drop.
+      */
+  -webkit-animation-iteration-count: infinite, infinite;
+  -webkit-animation-direction: normal, normal;
+  -webkit-animation-timing-function: linear, ease-in;
+}
+
+/* This CSS rule is applied to all img elements directly inside div elements which are
+     directly inside the leafContainer div. In other words, it matches the 'img' elements
+     inside the leafDivs which are created in the createALeaf() function.
+  */
+#leafContainer > div > img {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  /* We use the following properties to adjust the clockwiseSpin or counterclockwiseSpinAndFlip
+         animations on each leaf.
+         The createALeaf function in the Leaves.js file determines whether a leaf has the 
+         clockwiseSpin or counterclockwiseSpinAndFlip animation.
+      */
+  -webkit-animation-iteration-count: infinite;
+  -webkit-animation-direction: alternate;
+  -webkit-animation-timing-function: ease-in-out;
+  -webkit-transform-origin: 50% -100%;
+}
+
+/* Hides a leaf towards the very end of the animation */
+@-webkit-keyframes fade {
+  /* Show a leaf while into or below 95 percent of the animation and hide it, otherwise */
+  0% {
+    opacity: 1;
+  }
+  95% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Makes a leaf fall from -300 to 600 pixels in the y-axis */
+@-webkit-keyframes drop {
+  /* Move a leaf to -300 pixels in the y-axis at the start of the animation */
+  0% {
+    -webkit-transform: translate(0px, -50px);
+  }
+  /* Move a leaf to 600 pixels in the y-axis at the end of the animation */
+  100% {
+    -webkit-transform: translate(0px, 650px);
+  }
+}
+
+/* Rotates a leaf from -50 to 50 degrees in 2D space */
+@-webkit-keyframes clockwiseSpin {
+  /* Rotate a leaf by -50 degrees in 2D space at the start of the animation */
+  0% {
+    -webkit-transform: rotate(-50deg);
+  }
+  /*  Rotate a leaf by 50 degrees in 2D space at the end of the animation */
+  100% {
+    -webkit-transform: rotate(50deg);
+  }
+}
+
+/* Flips a leaf and rotates it from 50 to -50 degrees in 2D space */
+@-webkit-keyframes counterclockwiseSpinAndFlip {
+  /* Flip a leaf and rotate it by 50 degrees in 2D space at the start of the animation */
+  0% {
+    -webkit-transform: scale(-1, 1) rotate(50deg);
+  }
+  /* Flip a leaf and rotate it by -50 degrees in 2D space at the end of the animation */
+  100% {
+    -webkit-transform: scale(-1, 1) rotate(-50deg);
+  }
+}
+/*# sourceMappingURL=index.css.map */
