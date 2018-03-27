@@ -222,8 +222,6 @@ var result = {
                 withCredentials: true
             }).then(d => {
                 let data = d.data;
-                alert(JSON.stringify(data));
-
                 if (data.code == -1) {
                     this.$ons.notification.toast('哎呀，服务器出错了，请联系工作人员', {
                         timeout: 1500
