@@ -228,8 +228,9 @@ var result = {
                 withCredentials: true
             }).then(function (d) {
                 var data = d.data;
+                alert(JSON.stringify(data));
 
-                if (data.code = -1) {
+                if (data.code == -1) {
                     _this3.$ons.notification.toast('哎呀，服务器出错了，请联系工作人员', {
                         timeout: 1500
                     });
@@ -239,6 +240,7 @@ var result = {
                 _this3.showDialog = false;
                 _this3.submited = true;
             }).catch(function (e) {
+                alert(JSON.stringify(e));
                 console.error(e);
                 _this3.$ons.notification.toast('哎呀，服务器出错了，请联系工作人员', {
                     timeout: 1500
