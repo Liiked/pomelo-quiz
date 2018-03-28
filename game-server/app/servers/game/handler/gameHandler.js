@@ -48,6 +48,7 @@ handler.send = function (msg, session, next) {
 
 	// 数据库处理
 	gameMaster.redis.get(`u_${openid}`).then(d => {
+		console.log(d);
 		let data = JSON.parse(d);
 
 		if (res.playerAnswer == rightAnswer) {

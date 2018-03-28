@@ -28,6 +28,12 @@ gameRemote.prototype.add = function (uid, player, sid, name, flag, cb) {
 	if (!!channel) {
 		channel.add(uid, sid);
 	}
+	if (!gameMaster.redis || !gameMaster.redis.get) {
+		cb({
+			msg: "game doesn't exist"
+		})
+		return;
+	}
 	gameMaster.redis.get(`u_${openid}`).then(d => {
 		let data = d[0]
 		if (!data) {
@@ -161,7 +167,6 @@ gameRemote.prototype.kick = function (uid, sid, name, cb) {
 		channel.leave(uid, sid);
 	}
 	var openid = uid.split('*')[0];
-
 	
 	if (gameMaster.gameState == 'playing') {
 		gameMaster.redis.get(`u_${openid}`).then(d => {
@@ -190,3 +195,13 @@ gameRemote.prototype.kick = function (uid, sid, name, cb) {
 	}
 	cb();
 };
+
+// 游戏是否正在运行
+// gameRemote.prototype.gameRunning = function (uid, cb) {
+// 	console.log('gameMaster.gameState', gameMaster.gameState);
+// 	if (gameMaster.gameState == 'stop' || gameMaster.gameState == 'end') {
+// 		cb(false)
+// 		return;
+// 	}
+// 	cb(true);
+// }
