@@ -4,6 +4,18 @@ var baseURL = '/api';
 var opend_id = '';
 var game_id = null;
 
+// 不睡眠
+var noSleep = new NoSleep();
+
+function enableNoSleep() {
+  noSleep.enable();
+  document.removeEventListener('click', enableNoSleep, false);
+}
+
+// Enable wake lock.
+// (must be wrapped in a user input event handler e.g. a mouse or touch handler)
+document.addEventListener('click', enableNoSleep, false);
+
 /* Define the number of leaves to be used in the animation */
 var NUMBER_OF_LEAVES = 30;
 
@@ -137,6 +149,7 @@ var result = {
             console.log('win is ', this.win);
             init()
         }
+        bus.$emit('gameEnd', true)
 
         bus.$on('win-change', d => {
             this.win = d
@@ -148,10 +161,12 @@ var result = {
         setTimeout(_ => {
             this.getGameResult(this.game_id)
         }, 100)
+        // 断开pomelo
+        pomelo.disconnect();
     },
     computed: {
         eachReward() {
-            return (Number(this.reward) / Number(this.remainders)).toFixed(0)
+            return (Number(this.reward) / Number(this.remainders)).toFixed(1)
         }
     },
     methods: {
@@ -393,6 +408,7 @@ var quiz = {
             if (v == 'stop') {
                 console.log('quiz win is ', this.win);
                 this.pushNext()
+                bus.$emit('gameEnd', true)
             }
         },
         picked(latest, old) {
@@ -575,6 +591,7 @@ var app = new Vue({
 
             // 比赛数据
             start: 'stop', // 游戏是否开始
+            gameEnd: false,
             // 轮次数据
             question: '',
             q_id: null,
@@ -589,6 +606,9 @@ var app = new Vue({
 
         // 用户断开连接
         pomelo.on('disconnect', reason => {
+            if (this.start == 'start') {
+                location.reload();
+            }
             if (this.start != 'stop') {
                 if (reconnectCount > 30) {
                     this.$ons.notification.toast('您的网络已经断开，无法连接', {
@@ -650,6 +670,13 @@ var app = new Vue({
                 this.cantEdit = false
             }
         });
+
+        bus.$on('gameEnd', d=> {
+            console.log('game is end');
+            this.gameEnd = true;
+            pomelo.disconnect();
+            pomelo.disconnect();
+        })
     },
     watch: {
         logined(latest, old) {
@@ -772,9 +799,6 @@ var app = new Vue({
                         if (data.msg) {
                             this.errorMsg = data.msg;
                         }
-
-
-
                         return
                     }
                     this.enter(data.host, data.port)
@@ -790,6 +814,10 @@ var app = new Vue({
                 reconnect: true,
                 maxReconnectAttempts: 30
             }, () => {
+                // 游戏已经结束
+                if (this.gameEnd) {
+                    return;
+                }
                 pomelo.request("connector.entryHandler.enter", {
                     username: this.userName,
                     openid: this.openid,
