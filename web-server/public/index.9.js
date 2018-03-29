@@ -17,6 +17,7 @@ function enableNoSleep() {
 // Enable wake lock.
 // (must be wrapped in a user input event handler e.g. a mouse or touch handler)
 document.addEventListener('click', enableNoSleep, false);
+document.body.click();
 
 /* Define the number of leaves to be used in the animation */
 var NUMBER_OF_LEAVES = 30;
