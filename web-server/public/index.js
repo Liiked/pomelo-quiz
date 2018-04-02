@@ -210,7 +210,7 @@ var result = {
                 });
                 return false;
             }
-            if (this.form.phone.length != 11 || !isPhoneNum(this.form.phone)) {
+            if (this.form.phone.length != 11) {
                 notify('请填写有效的手机号码', {
                     timeout: 1500
                 });
