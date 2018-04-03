@@ -72,9 +72,13 @@ handler.send = function (msg, session, next) {
 			let resultInRedis = `gameResult:${config.id}`
 			redis.get(resultInRedis).then(d => {
 				let f = JSON.parse(d);
-				f.remain_players--;
-				gameMaster.remainPlayer = f.remain_players;
-				redis.set(resultInRedis, JSON.stringify(f));
+				if (gameMaster.remainPlayer > 0) {
+					f.remain_players--;
+					redis.set(resultInRedis, JSON.stringify(f));
+					gameMaster.remainPlayer = f.remain_players;
+				} else {
+					gameMaster.remainPlayer = 0;
+				}
 			});
 		}
 
